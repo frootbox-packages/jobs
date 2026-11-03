@@ -39,7 +39,7 @@ fields:
         <div class="jobs-contact__card">
           {% if person.image %}<div class="jobs-contact__photo">{{ person.image }}</div>{% endif %}
           <div class="jobs-contact__body">
-            <p class="jobs-contact__name">{{ person.name }}</p>
+            <p class="jobs-contact__name">{% if person.href %}<a href="{{ person.href }}">{{ person.name }}</a>{% else %}{{ person.name }}{% endif %}</p>
             {% if person.role %}<p class="jobs-contact__role">{{ person.role }}</p>{% endif %}
             {% if person.phone or person.email %}
             <ul class="jobs-contact__ways">

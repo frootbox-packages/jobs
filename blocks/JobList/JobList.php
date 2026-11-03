@@ -50,7 +50,7 @@ final readonly class JobList implements BlockController
             $job = $this->store->find($subpage->target->id);
 
             if (null !== $job && isset($job->data->translations[$language])) {
-                return ['job' => $this->rendering->detail($job, $language), 'form' => $form, 'back' => $base];
+                return ['job' => $this->rendering->detail($job, $language, $context->language), 'form' => $form, 'back' => $base];
             }
         }
 

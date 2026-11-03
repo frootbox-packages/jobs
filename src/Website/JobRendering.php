@@ -74,9 +74,11 @@ final readonly class JobRendering
     }
 
     /**
+     * @param string|null $page The language of the page, for the link to the profile of the contact person (decision 0242)
+     *
      * @return array<string, mixed>
      */
-    public function detail(PublishedJob $job, string $language): array
+    public function detail(PublishedJob $job, string $language, ?string $page = null): array
     {
         $text = $job->data->text($language) ?? new JobText('', '');
         $html = $this->types->get('richtext')->output($text->text, new Field('text', 'richtext', 'Text'));
@@ -89,7 +91,7 @@ final readonly class JobRendering
             'postedAt' => $job->posted->format('Y-m-d'),
             'image' => $this->image($job->data, null, self::DETAIL_SIZES, true),
             'text' => $html,
-            'contact' => null === $job->data->contact ? null : $this->cards->contact($job->data->contact, $language),
+            'contact' => null === $job->data->contact ? null : $this->cards->contact($job->data->contact, $language, $page),
             'data' => new Markup(self::json($this->structured($job, $text, \is_string($html) || $html instanceof Markup ? (string) $html : '', $language)), 'UTF-8'),
         ];
     }

@@ -12,6 +12,7 @@ use DateTimeImmutable;
 use Frootbox\Core\Action\InvalidInputException;
 use Frootbox\Core\Category\CreateCategory;
 use Frootbox\Core\Page\PublishPages;
+use Frootbox\Core\Plugin\AssignPlugin;
 use Frootbox\Core\Plugin\CreateSpace;
 use Frootbox\Core\ProjectPaths;
 use Frootbox\Forms\Form\AddField;
@@ -26,6 +27,7 @@ use Frootbox\Jobs\Job\UnpublishJob;
 use Frootbox\Jobs\Job\Workplace;
 use Frootbox\Jobs\JobPlugin;
 use Frootbox\Jobs\Website\JobRendering;
+use Frootbox\People\Person\PersonStore;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(JobList::class)]
@@ -187,6 +189,12 @@ final class WebsiteTest extends JobsTestCase
         self::assertSame(new DateTimeImmutable()->format('Y-m-d'), $data['datePosted']);
         self::assertSame('https://example.org/jobs/barista-m-w-d', $data['url']);
         self::assertStringNotContainsString('jobs-list', $html, 'Not the list.');
+
+        // With a page of the team that shows profiles the contact person links there (decision 0242).
+        $team = $this->page($this->start, 'Team');
+        $this->runner()->run(new AssignPlugin($team, PersonStore::TYPE));
+        $this->runner()->run(new PublishPages([$team]));
+        self::assertStringContainsString('<p class="jobs-contact__name"><a href="/team/lena-hoffmann">Lena Hoffmann</a></p>', $this->html('/jobs/barista-m-w-d'));
 
         $this->runner()->run(new UnpublishJob($id));
         self::assertSame(410, $this->statusOf('/jobs/barista-m-w-d'));
