@@ -1,8 +1,8 @@
 {# frootbox
 title: Jobs
-description: The open jobs of the space the page shows, the newest first, filtered by category, kind and location. Each job gets its own address below the page; there it shows the job with the person to contact and the application form.
+description: The open jobs of the space the page shows, the newest first, filtered by category, kind, location and tag. Each job gets its own address below the page; there it shows the job with the person to contact and the application form.
 plugin: true
-query: [category, type, location]
+query: [category, type, location, tag]
 options:
   form: { type: choice, label: Application form, source: frootbox/forms/form.choices, default: '' }
   images: { type: boolean, label: Images in the list, default: false }

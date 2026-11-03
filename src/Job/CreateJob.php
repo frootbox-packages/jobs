@@ -31,6 +31,7 @@ final readonly class CreateJob implements Action
      * @param array<mixed>|null $salary
      * @param array<mixed>|null $image
      * @param list<string>      $categories
+     * @param list<string>      $tags
      */
     public function __construct(
         #[Description('Title, slug, teaser and text by language: {"de": {"title": "Barista (m/w/d)", "teaser": "…", "text": {"type": "doc", "content": []}}}. The slug is made from the title if left out; the text holds tasks, profile and what the job offers.')]
@@ -57,6 +58,9 @@ final readonly class CreateJob implements Action
         #[ListOf('string')]
         #[Description('Ids of categories, see category-group.list and category.list')]
         public array $categories = [],
+        #[ListOf('string')]
+        #[Description('Ids, keys or labels of tags; a new word becomes a tag unless only presets count, see tag.choices')]
+        public array $tags = [],
     ) {}
 
     public function handle(JobEditor $editor): JobDetails
@@ -72,6 +76,7 @@ final readonly class CreateJob implements Action
             $editor->translations(self::NAME, $this->translations),
             $this->space,
             $editor->categories(self::NAME, $this->categories),
+            $editor->tags(self::NAME, $this->space, $this->tags),
         );
 
         return $editor->saveDraft(self::NAME, Ulid::generate(), $data);

@@ -22,6 +22,8 @@
 "All": "Alle"
 "All jobs": "Alle Stellen"
 "Kind of job": "Art der Stelle"
+"Tag": "Schlagwort"
+"Only with the tag": "Nur mit dem Schlagwort"
 "Category": "Kategorie"
 "Categories": "Kategorien"
 "Location": "Standort"
@@ -79,7 +81,7 @@
 "Save as a draft": "Als Entwurf speichern"
 "Teaser": "Anriss"
 "A few sentences for the list and for search engines.": "Ein paar Sätze für die Liste und für Suchmaschinen."
-"The open jobs of the space the page shows, the newest first, filtered by category, kind and location. Each job gets its own address below the page; there it shows the job with the person to contact and the application form.": "Die offenen Stellen der Verwaltung, die die Seite zeigt, die neuesten zuerst, nach Kategorie, Art und Standort filterbar. Jede Stelle bekommt eine eigene Adresse unter der Seite; dort steht die Stelle mit Ansprechperson und Bewerbungsformular."
+"The open jobs of the space the page shows, the newest first, filtered by category, kind, location and tag. Each job gets its own address below the page; there it shows the job with the person to contact and the application form.": "Die offenen Stellen der Verwaltung, die die Seite zeigt, die neuesten zuerst, nach Kategorie, Art, Standort und Schlagwort filterbar. Jede Stelle bekommt eine eigene Adresse unter der Seite; dort steht die Stelle mit Ansprechperson und Bewerbungsformular."
 "There is no such space of the jobs.": "Diese Verwaltung gibt es in den Stellenangeboten nicht."
 Space: Verwaltung
 Categories of the jobs: Kategorien der Stellenangebote

@@ -17,6 +17,7 @@ use Frootbox\Core\Page\Slug;
 use Frootbox\Core\Plugin\PluginSpaces;
 use Frootbox\Core\Revision\RevisionStore;
 use Frootbox\Core\Support\Message;
+use Frootbox\Core\Tag\ObjectTags;
 use Frootbox\Core\Url\AddressSync;
 use Frootbox\Database\EntityNotFoundException;
 use Frootbox\People\Location\LocationStore;
@@ -48,6 +49,7 @@ final readonly class JobEditor
         private PersonStore $people,
         private PluginSpaces $spaces,
         private ObjectCategories $categories,
+        private ObjectTags $tags,
     ) {}
 
     /**
@@ -256,6 +258,22 @@ final readonly class JobEditor
     }
 
     /**
+     * The tags of an action's input (decision 0239): ids, keys or labels;
+     * presets of the space and new words become tags here, unless only
+     * the presets count.
+     *
+     * @param list<string> $entries
+     *
+     * @return list<string>
+     *
+     * @throws InvalidInputException
+     */
+    public function tags(string $action, string $space, array $entries): array
+    {
+        return $this->tags->check($action, JobStore::TYPE, $space, $entries);
+    }
+
+    /**
      * Publishes the drafts of jobs together.
      *
      * @param list<string> $ids
@@ -315,6 +333,7 @@ final readonly class JobEditor
         foreach ($drafts as $id => $draft) {
             $this->revisions->publish(JobStore::TYPE, $id);
             $this->categories->sync(JobStore::TYPE, $id, $draft->categories);
+            $this->tags->sync(JobStore::TYPE, $id, $draft->tags);
 
             if (null !== $draft->media()) {
                 $media[] = $draft->media();
@@ -343,6 +362,7 @@ final readonly class JobEditor
 
         $this->revisions->archive(JobStore::TYPE, $id);
         $this->categories->clear(JobStore::TYPE, $id);
+        $this->tags->clear(JobStore::TYPE, $id);
         $this->addresses->sync();
 
         return $this->store->details($id);
@@ -379,6 +399,7 @@ final readonly class JobEditor
         $this->revisions->discard(JobStore::TYPE, $id);
         $this->revisions->archive(JobStore::TYPE, $id);
         $this->categories->clear(JobStore::TYPE, $id);
+        $this->tags->clear(JobStore::TYPE, $id);
 
         if ($published) {
             $this->addresses->sync();

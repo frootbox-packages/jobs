@@ -61,6 +61,7 @@ final class BackendTest extends BackendTestCase
             'location' => $location,
             'contact' => '',
             'image' => [],
+            'tags' => ['Quereinstieg'],
         ], $session);
         $id = $this->id($created);
 
@@ -68,6 +69,7 @@ final class BackendTest extends BackendTestCase
         self::assertStringContainsString('<h1 class="fb-heading-1" tabindex="-1" data-fb-focus>Barista (m/w/d)</h1>', $show);
         self::assertStringContainsString('value="barista-m-w-d"', $show);
         self::assertMatchesRegularExpression('/name="types\[\]"[^>]*value="part-time"[^>]*checked/', $show);
+        self::assertMatchesRegularExpression('~name="tags\[\]" value="[0-9A-Z]{26}" checked>\s*<span class="fb-check__text"><span>Quereinstieg</span>~', $show, 'A typed word became a tag.');
         self::assertStringContainsString('<option value="' . $location . '" selected>Café am Hafen</option>', $show);
         self::assertStringContainsString('<option value="hour" selected>pro Stunde</option>', $show);
         self::assertStringContainsString('value="14"', $show);

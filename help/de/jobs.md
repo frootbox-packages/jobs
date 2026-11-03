@@ -49,6 +49,13 @@ Unter **Kategorien** legst Du Bereiche an, etwa „Küche“ oder „Service“,
 auch untereinander. Besucher können die Liste danach filtern. Löschst
 Du eine Kategorie, bleiben ihre Stellen.
 
+## Schlagwörter
+
+Hak die passenden Schlagwörter an oder tipp neue Wörter ein, getrennt
+durch Kommas, etwa „Quereinstieg“ oder „Frühschicht“. Haben die Stellen
+verschiedene Schlagwörter, können Besucher die Liste danach filtern. Ein
+Teaser der neuesten Stellen kann nur die mit einem Schlagwort zeigen.
+
 ## Suchmaschinen
 
 Jede Stelle bringt strukturierte Daten mit, damit Suchmaschinen sie als

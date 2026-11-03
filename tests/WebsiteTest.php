@@ -9,9 +9,11 @@ declare(strict_types=1);
 namespace Frootbox\Jobs\Tests;
 
 use DateTimeImmutable;
+use Frootbox\Core\Action\InvalidInputException;
 use Frootbox\Core\Category\CreateCategory;
 use Frootbox\Core\Page\PublishPages;
 use Frootbox\Core\Plugin\CreateSpace;
+use Frootbox\Core\ProjectPaths;
 use Frootbox\Forms\Form\AddField;
 use Frootbox\Forms\Form\CreateForm;
 use Frootbox\Forms\Form\FieldType;
@@ -108,6 +110,40 @@ final class WebsiteTest extends JobsTestCase
         self::assertStringContainsString('Konditor', $html, 'With the categories below.');
         self::assertStringNotContainsString('>Barista<', $html);
         self::assertStringNotContainsString('Spülkraft', $html);
+    }
+
+    public function testFiltersByTagsWithPresetsPerSpace(): void
+    {
+        // The space of apprenticeships has a closed list of its own (decision 0239).
+        file_put_contents($this->get(ProjectPaths::class)->config('tags.yaml'), "types:\n  frootbox/jobs/job:\n    tags: [Quereinstieg]\n    spaces:\n      Ausbildung: { tags: [Mit Berufsschule], closed: true }\n");
+        $training = $this->runner()->run(new CreateSpace(JobStore::TYPE, 'Ausbildung'))->id;
+        $this->job(['de' => ['title' => 'Barista']], tags: ['quereinstieg']);
+        $this->job(['de' => ['title' => 'Konditor']], tags: ['Frühschicht']);
+        $this->job(['de' => ['title' => 'Azubi Röster']], ['apprenticeship'], space: $training, tags: ['Mit Berufsschule', 'Quereinstieg']);
+
+        try {
+            $this->job(['de' => ['title' => 'Azubi Koch']], ['apprenticeship'], space: $training, tags: ['Frühschicht']);
+            self::fail('Only the presets of the space count.');
+        } catch (InvalidInputException $exception) {
+            self::assertSame(['/tags/0'], array_keys($exception->errors));
+        }
+
+        $html = $this->html('/jobs');
+        self::assertStringContainsString('<nav class="jobs-filter" aria-label="Schlagwort">', $html);
+        self::assertStringContainsString('<a class="jobs-filter__link" href="/jobs?tag=fruehschicht">Frühschicht</a>', $html);
+        self::assertStringNotContainsString('Mit Berufsschule', $html, 'Only tags of the jobs listed.');
+
+        $html = $this->html('/jobs?tag=quereinstieg');
+        self::assertStringContainsString('Barista', $html);
+        self::assertStringNotContainsString('Konditor', $html);
+        self::assertStringContainsString('aria-current="page">Quereinstieg</a>', $html);
+
+        $teaser = $this->page($this->start, 'Einstieg', [['block' => 'frootbox/jobs/JobTeaser', 'options' => ['tag' => 'quereinstieg']]]);
+        $this->runner()->run(new PublishPages([$teaser]));
+        $html = $this->html('/einstieg');
+        self::assertStringContainsString('Barista', $html);
+        self::assertStringContainsString('Azubi Röster', $html, 'Of all spaces.');
+        self::assertStringNotContainsString('Konditor', $html);
     }
 
     public function testShowsAJobAtItsAddressWithStructuredData(): void

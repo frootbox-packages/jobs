@@ -49,6 +49,13 @@ Under **Categories** you create areas such as "Kitchen" or "Service",
 also below each other. Visitors can filter the list by them. Deleting a
 category keeps its jobs.
 
+## Tags
+
+Tick the tags that fit or type new words, separated by commas, e.g.
+"Career change" or "Early shift". When the jobs have different tags,
+visitors can filter the list by them. A teaser of the newest jobs can
+show only those with one tag.
+
 ## Search engines
 
 Each job brings structured data so search engines know it as a job

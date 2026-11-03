@@ -14,6 +14,8 @@ use Frootbox\Core\Component\BlockContext;
 use Frootbox\Core\Component\BlockController;
 use Frootbox\Core\Page\Slug;
 use Frootbox\Core\Plugin\Space;
+use Frootbox\Core\Tag\ObjectTags;
+use Frootbox\Core\Tag\Tag;
 use Frootbox\Core\Url\Urls;
 use Frootbox\Jobs\Job\JobStore;
 use Frootbox\Jobs\Job\JobType;
@@ -21,8 +23,9 @@ use Frootbox\Jobs\Job\PublishedJob;
 use Frootbox\Jobs\Website\JobRendering;
 
 /**
- * The open jobs, the newest first, filtered by kind, location and
- * category (with the ones below it, decision 0233) without a script, of the space the page shows: the view of the jobs at
+ * The open jobs, the newest first, filtered by kind, location, tag
+ * (decision 0239) and category (with the ones below it, decision 0233)
+ * without a script, of the space the page shows: the view of the jobs at
  * plugin() (decision 0232). Below the page each job has its address,
  * there the view shows the job with the application form (decision 0231).
  */
@@ -33,6 +36,7 @@ final readonly class JobList implements BlockController
         private JobRendering $rendering,
         private Urls $urls,
         private ObjectCategories $categories,
+        private ObjectTags $tags,
     ) {}
 
     public function data(BlockContext $context): array
@@ -60,6 +64,16 @@ final readonly class JobList implements BlockController
         $assigned = $this->categories->of(JobStore::TYPE, array_map(static fn(PublishedJob $job): string => $job->id, $jobs));
         $used = array_flip(array_map(static fn(Category $category): string => $category->id, array_merge(...array_values($assigned))));
         $topics = [];
+        $tagged = $this->tags->of(JobStore::TYPE, array_map(static fn(PublishedJob $job): string => $job->id, $jobs));
+        $words = [];
+
+        foreach (array_merge(...array_values($tagged)) as $tag) {
+            foreach ($this->tags->visible([$tag], $language) as $word) {
+                $words[$word['slug']] = ['id' => $tag->id, 'title' => $word['label']];
+            }
+        }
+
+        uasort($words, static fn(array $a, array $b): int => strcmp(mb_strtolower($a['title']), mb_strtolower($b['title'])));
 
         foreach ($this->categories->tree(JobStore::TYPE, JobStore::CATEGORIES) as $item) {
             $slug = $item->slug($language);
@@ -89,12 +103,15 @@ final readonly class JobList implements BlockController
         $type = null !== $type && \in_array($type, $types, true) && $filtering ? $type : null;
         $place = (string) $context->query('location');
         $place = isset($locations[$place]) && $filtering ? $place : null;
+        $word = (string) $context->query('tag');
+        $word = isset($words[$word]) && $filtering ? $word : null;
         [$topic, $chosen] = ($filtering ? $this->categories->bySlug(JobStore::TYPE, $language, (string) $context->query('category')) : null) ?? [null, null];
 
         $shown = array_values(array_filter($jobs, static fn(PublishedJob $job): bool => (null === $type || \in_array($type, $job->data->types, true))
             && (null === $place || $job->data->location === $locations[$place]['id'])
+            && (null === $word || \in_array($words[$word]['id'], array_map(static fn(Tag $tag): string => $tag->id, $tagged[$job->id] ?? []), true))
             && (null === $chosen || [] !== array_intersect($chosen, array_map(static fn(Category $category): string => $category->id, $assigned[$job->id] ?? [])))));
-        $current = ['category' => $topic?->slug($language), 'type' => $type?->value, 'location' => $place];
+        $current = ['category' => $topic?->slug($language), 'type' => $type?->value, 'location' => $place, 'tag' => $word];
         $link = static function (array $change) use ($base, $current): string {
             $query = array_filter([...$current, ...$change], static fn(mixed $value): bool => null !== $value);
 
@@ -132,10 +149,20 @@ final readonly class JobList implements BlockController
             ];
         }
 
+        if ($filtering && \count($words) > 1) {
+            $filters[] = [
+                'label' => 'Tag',
+                'links' => [
+                    ['title' => null, 'href' => $link(['tag' => null]), 'current' => null === $word],
+                    ...array_map(static fn(string $slug, array $item): array => ['title' => $item['title'], 'href' => $link(['tag' => $slug]), 'current' => $slug === $word], array_keys($words), $words),
+                ],
+            ];
+        }
+
         return [
             'jobs' => array_map(fn(PublishedJob $job): array => $this->rendering->teaser($job, $language, $images), $shown),
             'filters' => $filters,
-            'filtered' => null !== $type || null !== $place || null !== $topic,
+            'filtered' => null !== $type || null !== $place || null !== $topic || null !== $word,
             'total' => \count($jobs),
         ];
     }

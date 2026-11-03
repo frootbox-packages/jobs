@@ -16,7 +16,7 @@
     <fb-form action="frootbox/jobs/job.create" next="{{ path('frootbox.jobs.jobs') }}/{id}" done="{{ t('The job is saved as a draft.') }}">
         <form class="fb-card fb-card--padded fb-stack" novalidate>
             {% if space %}<input type="hidden" name="space" value="{{ space }}">{% endif %}
-            {% include '@frootbox/jobs/backend/fields.twig' with {language: language, translation: null, slug: false, data: null, image: null, image_value: null, types: types, workplaces: workplaces, periods: periods, locations: locations, people: people, editable: true} only %}
+            {% include '@frootbox/jobs/backend/fields.twig' with {language: language, translation: null, slug: false, data: null, image: null, image_value: null, types: types, workplaces: workplaces, periods: periods, locations: locations, people: people, space: space ?? null, editable: true} only %}
             <div class="fb-form__actions">
                 {{ ui.button({label: t('Save as a draft'), type: 'submit'}) }}
                 {{ ui.button({label: t('Cancel'), variant: 'ghost', href: path('frootbox.jobs.jobs')}) }}
