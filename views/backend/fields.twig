@@ -1,0 +1,33 @@
+{#- The fields of a job in one language plus kind, start, workplace, salary, location, contact and image (decisions 0220, 0231). -#}
+{% import '@backend/ui.twig' as ui %}
+{% set code = language.code %}
+{% set dir = language.direction.value %}
+{% set prefix = 'translations.' ~ code ~ '.' %}
+{% set chosen = data ? data.types|map(type => type.value) : [] %}
+{{ ui.field({label: t('Title'), name: prefix ~ 'title', id: 'job-title', value: translation.title ?? '', required: true, disabled: not editable, hint: t('Name the job as people search for it, e.g. "Barista (m/f/d)".'), attrs: {lang: code, dir: dir, maxlength: 300}}) }}
+{% if slug %}
+{{ ui.field({label: t('Address'), name: prefix ~ 'slug', id: 'job-slug', value: translation.slug ?? '', disabled: not editable, attrs: {dir: 'ltr', maxlength: 100}, hint: t('The last part of the address of the job. If it changes, the old one redirects to the new one.')}) }}
+{% endif %}
+{{ ui.field({label: t('Teaser'), name: prefix ~ 'teaser', id: 'job-teaser', value: translation.teaser ?? '', multiline: true, optional: true, disabled: not editable, hint: t('A few sentences for the list and for search engines.'), attrs: {lang: code, dir: dir, rows: 3}}) }}
+{{ ui.richtext({label: t('Text'), name: prefix ~ 'text', id: 'job-text', value: translation.text ?? null, optional: true, disabled: not editable, hint: t('Tasks, profile and what you offer, each with a subheading.'), lang: code, dir: dir}) }}
+<fieldset class="fb-fieldset">
+    <legend class="fb-fieldset__legend">{{ t('Kind of job') }} <span class="fb-label__optional">({{ t('optional') }})</span></legend>
+    {% for type in types %}
+        {{ ui.check({label: t(type.label), name: 'types[]', id: 'job-type-' ~ type.value, value: type.value, checked: type.value in chosen, disabled: not editable}) }}
+    {% endfor %}
+</fieldset>
+{{ ui.field({label: t('Start'), name: 'start', id: 'job-start', type: 'date', value: data.start ?? '', optional: true, disabled: not editable, hint: t('Left empty for as soon as possible.')}) }}
+{{ ui.select({label: t('Workplace'), name: 'workplace', id: 'job-workplace', options: workplaces|map(place => {value: place.value, label: t(place.label)}), value: data ? data.workplace.value : 'on-site', disabled: not editable}) }}
+<fieldset class="fb-fieldset">
+    <legend class="fb-fieldset__legend">{{ t('Salary') }} <span class="fb-label__optional">({{ t('optional') }})</span></legend>
+    <div class="fb-cluster">
+        {{ ui.field({label: t('From'), name: 'salary.min', id: 'job-salary-min', type: 'number', value: data.salary.min ?? '', disabled: not editable, attrs: {min: 0, step: 1, inputmode: 'numeric'}}) }}
+        {{ ui.field({label: t('Up to'), name: 'salary.max', id: 'job-salary-max', type: 'number', value: data.salary.max ?? '', disabled: not editable, attrs: {min: 0, step: 1, inputmode: 'numeric'}}) }}
+        {{ ui.select({label: t('Paid'), name: 'salary.per', id: 'job-salary-per', options: periods|map(period => {value: period.value, label: t(period.label)}), value: data.salary.per.value ?? 'month', disabled: not editable}) }}
+        {{ ui.field({label: t('Currency'), name: 'salary.currency', id: 'job-salary-currency', value: data.salary.currency ?? 'EUR', disabled: not editable, attrs: {dir: 'ltr', maxlength: 3, size: 4, autocomplete: 'off'}}) }}
+    </div>
+    <p class="fb-hint">{{ t('In whole amounts. Search engines show the salary, and many people only apply with one.') }}</p>
+</fieldset>
+{{ ui.select({label: t('Location'), name: 'location', id: 'job-location', options: [{value: '', label: t('No location')}]|merge(locations), value: data.location ?? '', disabled: not editable, hint: locations ? t('From the locations under People. Visitors can filter the list by it.') : t('Create locations under People to name where the job is.')}) }}
+{{ ui.select({label: t('Contact'), name: 'contact', id: 'job-contact', options: [{value: '', label: t('No contact')}]|merge(people), value: data.contact ?? '', disabled: not editable, hint: t('The person applicants can ask, from the people under People.')}) }}
+{{ ui.image({label: t('Image'), name: 'image', id: 'job-image', value: image_value, preview: image.preview ?? null, file: image.file ?? null, optional: true, disabled: not editable}) }}

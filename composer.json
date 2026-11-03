@@ -1,0 +1,41 @@
+{
+    "name": "frootbox/jobs",
+    "description": "Jobs for the Frootbox CMS: open positions with kind, start, salary and drafts, a list filtered by kind and location, an address for each job, structured data and the application through a form",
+    "type": "frootbox-extension",
+    "license": "MIT",
+    "keywords": [
+        "cms",
+        "frootbox",
+        "jobs",
+        "careers"
+    ],
+    "require": {
+        "php": ">=8.5",
+        "frootbox/core": "^0.1",
+        "frootbox/database": "^0.1",
+        "frootbox/people": "^0.1",
+        "frootbox/rich-text": "^0.1",
+        "psr/http-message": "^2.0",
+        "psr/http-server-handler": "^1.0"
+    },
+    "suggest": {
+        "frootbox/backend": "The screen for the jobs",
+        "frootbox/forms": "Applications with files through a form on each job"
+    },
+    "autoload": {
+        "psr-4": {
+            "Frootbox\\Jobs\\": "src/",
+            "Frootbox\\Jobs\\Migrations\\": "migrations/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Frootbox\\Jobs\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

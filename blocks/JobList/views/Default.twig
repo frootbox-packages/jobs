@@ -1,0 +1,92 @@
+{# frootbox
+title: Jobs
+description: The open jobs, the newest first, filtered by kind and location. Each job gets its own address below the first page with this block; there the block shows the job with the person to contact and the application form.
+group: list
+keywords: [Jobs, Careers, Vacancies, Application, Work, Apprenticeship]
+query: [type, location]
+options:
+  form: { type: choice, label: Application form, source: frootbox/forms/form.choices, default: '' }
+  images: { type: boolean, label: Images in the list, default: false }
+  filters: { type: boolean, label: Filter by kind and location, default: true }
+fields:
+  title: { type: headline, label: Heading, optional: true, maxLength: 100, placeholder: "Jobs" }
+#}
+{#- The facts of a job in one line: kind, place, start, salary. -#}
+{% macro facts(job) -%}
+  {%- set facts = [
+    job.types|map(type => t(type))|join(', '),
+    job.workplace ? t(job.workplace) : null,
+    job.location,
+    job.start ? t('From {date}', {date: job.start}) : t('As soon as possible'),
+    job.salary ?? false ? t({hour: '{amount} per hour', month: '{amount} per month', year: '{amount} per year'}[job.per], {amount: job.salary}) : null,
+  ]|filter(fact => fact) -%}
+  <p class="jobs-facts">
+    {%- for fact in facts %}{% if not loop.first %}<span class="jobs-facts__sep" aria-hidden="true"> · </span>{% endif %}<span>{{ fact }}</span>{% endfor -%}
+  </p>
+{%- endmacro %}
+{% if job is defined %}
+  <article class="jobs-job">
+    <header class="jobs-job__head">
+      {{ heading_text(job.title, 0, {class: 'jobs-job__title'}) }}
+      {{ _self.facts(job) }}
+      {% if job.teaser %}<p class="jobs-job__teaser">{{ job.teaser }}</p>{% endif %}
+    </header>
+    {% if job.image %}<div class="jobs-job__media">{{ job.image }}</div>{% endif %}
+    <div class="jobs-job__text">{{ job.text }}</div>
+    {% if job.contact %}
+      {% set person = job.contact %}
+      <section class="jobs-contact"{{ {lang: person.lang, dir: person.dir}|attributes }}>
+        {{ heading_text(t('Your contact'), 1, {class: 'jobs-contact__title'}) }}
+        <div class="jobs-contact__card">
+          {% if person.image %}<div class="jobs-contact__photo">{{ person.image }}</div>{% endif %}
+          <div class="jobs-contact__body">
+            <p class="jobs-contact__name">{{ person.name }}</p>
+            {% if person.role %}<p class="jobs-contact__role">{{ person.role }}</p>{% endif %}
+            {% if person.phone or person.email %}
+            <ul class="jobs-contact__ways">
+              {% if person.phone %}<li><a href="{{ person.phoneHref }}" dir="ltr">{{ person.phone }}</a></li>{% endif %}
+              {% if person.email %}<li><a href="mailto:{{ person.email }}" dir="ltr">{{ person.email }}</a></li>{% endif %}
+            </ul>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+    {% endif %}
+    {% if form %}
+      <div class="jobs-job__apply">{{ render_block('frootbox/forms/Form', {form: form}) }}</div>
+    {% elseif job.contact and job.contact.email %}
+      <p class="jobs-job__apply"><a class="jobs-job__mail" href="mailto:{{ job.contact.email }}?subject={{ job.title|url_encode }}">{{ t('Apply by email') }}</a></p>
+    {% endif %}
+    {% if back %}<p class="jobs-job__back"><a href="{{ back }}">{{ t('All jobs') }}</a></p>{% endif %}
+    <script type="application/ld+json">{{ job.data }}</script>
+  </article>
+{% else %}
+  <div class="jobs-list">
+    {{ heading('title', 0, {class: 'jobs-list__title'}) }}
+    {% for filter in filters %}
+      <nav class="jobs-filter" aria-label="{{ t(filter.label) }}">
+        <ul class="jobs-filter__list">
+          {% for link in filter.links %}
+            <li><a class="jobs-filter__link" href="{{ link.href }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title ? t(link.title) : t('All') }}</a></li>
+          {% endfor %}
+        </ul>
+      </nav>
+    {% endfor %}
+    {% if jobs %}
+      <ul class="jobs-list__items">
+        {% for item in jobs %}
+          <li class="jobs-item">
+            <div class="jobs-item__body">
+              {{ heading_text(item.title, 1, {class: 'jobs-item__title'}, item.url) }}
+              {{ _self.facts(item) }}
+              {% if item.teaser %}<p class="jobs-item__text">{{ item.teaser }}</p>{% endif %}
+            </div>
+            {% if item.image %}<div class="jobs-item__media">{{ item.image }}</div>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="jobs-list__empty">{{ filtered ? t('No jobs match this choice.') : t('There are no open jobs right now.') }}</p>
+    {% endif %}
+  </div>
+{% endif %}

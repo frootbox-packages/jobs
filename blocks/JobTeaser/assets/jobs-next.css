@@ -1,0 +1,13 @@
+/* SPDX-License-Identifier: MIT */
+/* The newest jobs. Values come from the tokens of the theme, with fallbacks. */
+.jobs-next { display: flex; flex-direction: column; gap: var(--space-m, 1.5rem); }
+.jobs-next__title { margin: 0; font-size: var(--size-2xl, 2rem); }
+.jobs-next__items { display: flex; flex-direction: column; gap: var(--space-s, 1rem); margin: 0; padding: 0; list-style: none; }
+.jobs-next__item { position: relative; display: flex; flex-direction: column; gap: var(--space-3xs, 0.125rem); }
+.jobs-next__name { margin: 0; font-size: var(--size-m, 1rem); }
+.jobs-next__name a { color: inherit; text-decoration: none; }
+.jobs-next__name a:hover, .jobs-next__name a:focus-visible { text-decoration: underline; }
+/* The whole item takes the click of its heading. */
+.jobs-next__name a::after { content: ""; position: absolute; inset: 0; }
+.jobs-next__facts, .jobs-next__empty { margin: 0; color: var(--color-muted, #57534e); font-size: var(--size-s, 0.875rem); }
+.jobs-next__all { margin: 0; }

@@ -1,0 +1,158 @@
+# Demo jobs in German and English with an application form, for a
+# website of the base theme or a child theme with a start page, after the
+# demo of the people and locations of Bohnenglück:
+#
+#     php bin/frootbox seed frootbox/people:demo/people.yaml
+#     php bin/frootbox seed frootbox/jobs:demo/jobs.yaml
+#
+# A page "Jobs" below the start page lists three jobs; each one gets its
+# address below it, e.g. /jobs/barista-m-w-d, with the form "Bewerbung"
+# that takes a CV. The locations are those of the demo of people, sorted
+# by name: the café first, then the roastery.
+
+- page.tree: {}
+  as: tree
+- frootbox/people/location.list: {}
+  as: locations
+- frootbox/people/person.list: {}
+  as: people
+
+- frootbox/forms/form.create:
+    translations:
+      de: { title: Bewerbung, button: Bewerbung senden, success: 'Danke für Deine Bewerbung! Wir melden uns innerhalb einer Woche.' }
+      en: { title: Application, button: Send application, success: 'Thank you for your application! We will get back to you within a week.' }
+    recipients: [jobs@bohnenglueck.example]
+  as: application
+- frootbox/forms/form.field-add:
+    id: '${application.id}'
+    key: name
+    type: text
+    required: true
+    translations: { de: { label: Name }, en: { label: Name } }
+- frootbox/forms/form.field-add:
+    id: '${application.id}'
+    key: email
+    type: email
+    required: true
+    translations: { de: { label: E-Mail }, en: { label: Email } }
+- frootbox/forms/form.field-add:
+    id: '${application.id}'
+    key: cv
+    type: files
+    required: true
+    translations: { de: { label: Lebenslauf und Zeugnisse }, en: { label: CV and references } }
+- frootbox/forms/form.field-add:
+    id: '${application.id}'
+    key: message
+    type: textarea
+    translations: { de: { label: 'Was sollten wir noch wissen?' }, en: { label: 'What else should we know?' } }
+- frootbox/forms/form.field-add:
+    id: '${application.id}'
+    key: privacy
+    type: consent
+    translations:
+      de: { label: 'Ich bin einverstanden, dass meine Angaben und Dateien für das Bewerbungsverfahren gespeichert werden.' }
+      en: { label: I agree that my details and files are stored for the application. }
+- frootbox/forms/form.publish: { id: '${application.id}' }
+
+- page.create:
+    layout: frootbox/theme-base/Page
+    parentId: '${tree.0.id}'
+    translations:
+      de:
+        title: Jobs
+        content:
+          fields:
+            title: Jobs bei Bohnenglück
+            intro: Wir suchen Menschen, die Kaffee so lieben wie wir. Im Café, in der Rösterei und als Azubi.
+          areas:
+            main:
+              - block: frootbox/jobs/JobList
+                options: { form: '${application.id}' }
+      en:
+        title: Jobs
+        content:
+          fields:
+            title: Jobs at Bohnenglück
+            intro: We are looking for people who love coffee as much as we do. In the café, at the roastery and as apprentices.
+          areas:
+            main:
+              - block: frootbox/jobs/JobList
+                options: { form: '${application.id}' }
+  as: page
+- page.publish: { ids: ['${page.id}'] }
+
+- frootbox/jobs/job.create:
+    types: [full-time, part-time]
+    workplace: on-site
+    salary: { min: 2600, max: 3000, per: month }
+    location: '${locations.0.id}'
+    contact: '${people.0.id}'
+    translations:
+      de:
+        title: Barista (m/w/d)
+        teaser: Du bereitest Espresso, Cappuccino und Filterkaffee für unsere Gäste am Hafen zu.
+        text:
+          type: doc
+          content:
+            - { type: heading, attrs: { level: 1 }, content: [{ type: text, text: Deine Aufgaben }] }
+            - type: bulletList
+              content:
+                - { type: listItem, content: [{ type: paragraph, content: [{ type: text, text: Kaffee zubereiten und Gäste beraten }] }] }
+                - { type: listItem, content: [{ type: paragraph, content: [{ type: text, text: Die Bar sauber und ordentlich halten }] }] }
+            - { type: heading, attrs: { level: 1 }, content: [{ type: text, text: Was wir bieten }] }
+            - { type: paragraph, content: [{ type: text, text: 'Ein Team, das Kaffee liebt, eine Barista-Schulung und jeden Tag frisch geröstete Bohnen.' }] }
+      en:
+        title: Barista (m/f/d)
+        teaser: You prepare espresso, cappuccino and filter coffee for our guests by the harbour.
+        text:
+          type: doc
+          content:
+            - { type: heading, attrs: { level: 1 }, content: [{ type: text, text: Your tasks }] }
+            - type: bulletList
+              content:
+                - { type: listItem, content: [{ type: paragraph, content: [{ type: text, text: Make coffee and advise guests }] }] }
+                - { type: listItem, content: [{ type: paragraph, content: [{ type: text, text: Keep the bar clean and tidy }] }] }
+            - { type: heading, attrs: { level: 1 }, content: [{ type: text, text: What we offer }] }
+            - { type: paragraph, content: [{ type: text, text: 'A team that loves coffee, barista training and freshly roasted beans every day.' }] }
+  as: barista
+- frootbox/jobs/job.publish: { ids: ['${barista.id}'] }
+
+- frootbox/jobs/job.create:
+    types: [full-time]
+    start: '${day:+3 months}'
+    salary: { min: 38000, max: 44000, per: year }
+    location: '${locations.1.id}'
+    contact: '${people.0.id}'
+    translations:
+      de:
+        title: Röster (m/w/d)
+        teaser: Du röstest mit uns jeden Morgen frische Chargen und entwickelst neue Profile.
+        text:
+          type: doc
+          content:
+            - { type: paragraph, content: [{ type: text, text: 'Erfahrung an der Röstmaschine hilft, Neugier ist wichtiger.' }] }
+      en:
+        title: Roaster (m/f/d)
+        teaser: You roast fresh batches with us every morning and develop new profiles.
+        text:
+          type: doc
+          content:
+            - { type: paragraph, content: [{ type: text, text: 'Experience at the roaster helps, curiosity matters more.' }] }
+  as: roaster
+- frootbox/jobs/job.publish: { ids: ['${roaster.id}'] }
+
+- frootbox/jobs/job.create:
+    types: [apprenticeship]
+    start: '${day:+9 months}'
+    location: '${locations.0.id}'
+    contact: '${people.0.id}'
+    translations:
+      de:
+        title: Ausbildung zur Fachkraft für Gastronomie (m/w/d)
+        teaser: Zwei Jahre im Café und in der Rösterei, mit Berufsschule in Hamburg.
+      en:
+        title: Apprenticeship in hospitality (m/f/d)
+        teaser: Two years in the café and at the roastery, with vocational school in Hamburg.
+  as: apprenticeship
+- frootbox/jobs/job.publish: { ids: ['${apprenticeship.id}'] }

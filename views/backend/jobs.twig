@@ -1,0 +1,59 @@
+{#- The screen "Jobs": the jobs by title (decisions 0220, 0231). -#}
+{% extends '@backend/layout.twig' %}
+{% import '@backend/ui.twig' as ui %}
+
+{% block title %}{{ t('Jobs') }}{% endblock %}
+
+{% block content %}
+<div class="fb-stack fb-stack--lg">
+    <header class="fb-page-header">
+        <div class="fb-page-header__text">
+            <h1 class="fb-heading-1">{{ t('Jobs') }}</h1>
+            <p class="fb-muted">{{ t('Open positions, apprenticeships and internships. Visitors apply through the form on each job.') }}</p>
+        </div>
+        <div class="fb-cluster">
+            {% if can('frootbox/jobs/job.create') %}{{ ui.button({label: t('New job'), href: path('frootbox.jobs.jobs.new'), icon: 'plus'}) }}{% endif %}
+        </div>
+    </header>
+
+    <section class="fb-card" aria-labelledby="jobs-jobs-title">
+        <div class="fb-card__header">
+            <h2 class="fb-heading-4" id="jobs-jobs-title">{{ t('Jobs') }}</h2>
+            {{ ui.badge('neutral', list.total) }}
+        </div>
+        <form class="fb-card__body fb-cluster" method="get" action="{{ path('frootbox.jobs.jobs') }}" role="search">
+            {{ ui.field({label: t('Search'), name: 'q', id: 'jobs-search', type: 'search', value: search, placeholder: t('Title')}) }}
+            {{ ui.button({label: t('Search'), variant: 'outline', type: 'submit', icon: 'search'}) }}
+        </form>
+        {% if list.items is empty %}
+        <div class="fb-card__body">
+            {% if search %}
+                {{ ui.empty({icon: 'briefcase', title: t('Nothing found'), text: t('Try another search.')}) }}
+            {% else %}
+                {{ ui.empty({icon: 'briefcase', title: t('No jobs yet'), text: t('Create the first one. It stays a draft until you publish it.'), action: can('frootbox/jobs/job.create') ? {label: t('New job'), href: path('frootbox.jobs.jobs.new'), icon: 'plus'} : null}) }}
+            {% endif %}
+        </div>
+        {% else %}
+        <ul>
+            {%- for job in list.items %}
+            <li class="fb-list__item">
+                <span class="fb-list__main">
+                    <a class="fb-list__title fb-list__link" href="{{ path('frootbox.jobs.jobs.show', {id: job.id}) }}">{{ job.title ?: t('Without a title') }}</a>
+                    <span class="fb-list__meta">{{ job.types ? job.types|map(type => t(type.title))|join(', ') : t('Kind not set') }}{% if job.languages|length > 1 %} · {{ job.languages|map(code => code|upper)|join(', ') }}{% endif %}</span>
+                </span>
+                {% if job.publishAt or job.unpublishAt %}{{ ui.status('scheduled') }}{% endif %}
+                {{ ui.status(job.status.value) }}
+            </li>
+            {%- endfor %}
+        </ul>
+        {% endif %}
+    </section>
+    {% if list.pages > 1 %}
+    <nav class="fb-cluster" aria-label="{{ t('Pages of the list') }}">
+        {% if list.page > 1 %}{{ ui.button({label: t('Newer'), href: path('frootbox.jobs.jobs') ~ '?' ~ {q: search ?: null, page: list.page - 1}|url_encode, variant: 'outline', small: true}) }}{% endif %}
+        <span class="fb-muted">{{ t('Page {page} of {pages}', {page: list.page, pages: list.pages}) }}</span>
+        {% if list.page < list.pages %}{{ ui.button({label: t('Older'), href: path('frootbox.jobs.jobs') ~ '?' ~ {q: search ?: null, page: list.page + 1}|url_encode, variant: 'outline', small: true}) }}{% endif %}
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

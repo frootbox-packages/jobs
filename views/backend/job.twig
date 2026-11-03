@@ -1,0 +1,169 @@
+{#- A job: text by language, kind, start, workplace, salary, location, contact and image in the draft; publishing, times, offline and deleting (decisions 0220, 0231). -#}
+{% extends '@backend/layout.twig' %}
+{% import '@backend/ui.twig' as ui %}
+{% set has_draft = job.draft is not null %}
+{% set published = job.published is not null %}
+{% set refresh = 'job-detail' %}
+{% set self = path('frootbox.jobs.jobs.show', {id: job.id}) %}
+{% set heading = title ?: t('Without a title') %}
+
+{% block title %}{{ heading }} · {{ t('Jobs') }}{% endblock %}
+
+{% block content %}
+<div class="fb-stack fb-stack--lg" id="job-detail">
+    <header class="fb-page-header">
+        <div class="fb-page-header__text">
+            <p class="fb-muted"><a href="{{ path('frootbox.jobs.jobs') }}">{{ t('Jobs') }}</a></p>
+            <h1 class="fb-heading-1" tabindex="-1" data-fb-focus>{{ heading }}</h1>
+        </div>
+        <div class="fb-cluster">
+            {% if job.publishAt or job.unpublishAt %}{{ ui.status('scheduled') }}{% endif %}
+            {{ ui.status(job.status.value) }}
+        </div>
+    </header>
+
+    {% for planned in [{at: job.publishAt, text: t('Will be published on {time} by itself.')}, {at: job.unpublishAt, text: t('Goes offline on {time} by itself.')}] %}
+        {% if planned.at %}
+        {% set parts = planned.text|split('{time}') %}
+        {% set text %}{{ parts[0] }}{{ ui.time(planned.at) }}{{ parts[1] ?? '' }}{% endset %}
+        {{ ui.alert({tone: 'info', text: text, live: 'none'}) }}
+        {% endif %}
+    {% endfor %}
+
+    <div class="fb-cluster">
+        {% set url = job.urls[language.code] ?? null %}
+        {% if url %}{{ ui.button({label: t('View on the website'), href: url, variant: 'outline', icon: 'external', attrs: {target: '_blank', rel: 'noopener'}}) }}{% endif %}
+        {% if has_draft and can('frootbox/jobs/job.publish') %}
+        <fb-form action="frootbox/jobs/job.publish" refresh="{{ refresh }}" done="{{ t('The job is published.') }}">
+            <form novalidate>
+                <input type="hidden" name="ids[]" value="{{ job.id }}">
+                {{ ui.button({label: t('Publish'), type: 'submit'}) }}
+            </form>
+        </fb-form>
+        {% endif %}
+        {% if has_draft and can('frootbox/jobs/job.discard') %}
+            {{ ui.button({label: t('Discard the draft'), variant: 'danger', attrs: {commandfor: 'job-discard', command: 'show-modal'}}) }}
+        {% endif %}
+    </div>
+
+    <section class="fb-card" aria-labelledby="job-content-title">
+        <h2 class="fb-visually-hidden" id="job-content-title">{{ t('Content') }}</h2>
+        {% if languages|length > 1 %}
+        {{ ui.tabs(t('Languages'), languages|map(item => {
+            label: item.title,
+            href: self ~ '?language=' ~ item.code,
+            current: item.code == language.code,
+            attrs: {lang: item.code},
+        })) }}
+        {% endif %}
+        <div class="fb-card__body fb-stack">
+            {% set editable = can('frootbox/jobs/job.update') %}
+            {% if translation %}
+            <fb-form action="frootbox/jobs/job.update" refresh="{{ refresh }}" done="{{ t('Saved') }}">
+                <form class="fb-stack" novalidate>
+                    <input type="hidden" name="id" value="{{ job.id }}">
+                    {% include '@frootbox/jobs/backend/fields.twig' with {language: language, translation: translation, slug: true, data: data, image: image, image_value: data.image, types: types, workplaces: workplaces, periods: periods, locations: locations, people: people, editable: editable} only %}
+                    {% if editable %}
+                    <div class="fb-form__actions">{{ ui.button({label: t('Save'), type: 'submit', saves: true}) }}<p class="fb-form__note">{{ t('Changes go into the draft. Visitors see them after publishing.') }}</p></div>
+                    {% endif %}
+                </form>
+            </fb-form>
+            {% else %}
+            <div class="fb-missing">
+                <p class="fb-missing__title">{{ t('No version in {language} yet', {language: language.title}) }}</p>
+                <p class="fb-muted">{{ t('Visitors in this language do not see the job.') }}</p>
+                {% if editable %}
+                <fb-form action="frootbox/jobs/job.update" refresh="{{ refresh }}" done="{{ t('Saved') }}">
+                    <form novalidate>
+                        <input type="hidden" name="id" value="{{ job.id }}">
+                        <input type="hidden" name="translations.{{ language.code }}.title" value="{{ source.title ?? '' }}">
+                        {{ ui.button({label: t('Add the version in {language}', {language: language.title}), type: 'submit', variant: 'tonal', icon: 'plus'}) }}
+                    </form>
+                </fb-form>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    {% if can('frootbox/jobs/job.schedule') %}
+    <section class="fb-card fb-card--padded fb-stack" aria-labelledby="job-schedule-title">
+        <h2 class="fb-heading-4" id="job-schedule-title">{{ t('Times') }}</h2>
+        <fb-form action="frootbox/jobs/job.schedule" refresh="{{ refresh }}" done="{{ t('Saved') }}">
+            <form class="fb-stack" novalidate>
+                <input type="hidden" name="id" value="{{ job.id }}">
+                {{ ui.field({label: t('Publish on'), name: 'publishAt', id: 'job-publish-at', type: 'datetime-local', optional: true, value: job.publishAt ? job.publishAt|date('Y-m-d\\TH:i') : '', disabled: not has_draft, hint: has_draft ? t('The draft goes online by itself.') : t('Only for a draft.'), attrs: {'data-type': 'datetime', 'data-value': job.publishAt ? job.publishAt|date('c') : null}}) }}
+                {{ ui.field({label: t('Take offline on'), name: 'unpublishAt', id: 'job-unpublish-at', type: 'datetime-local', optional: true, value: job.unpublishAt ? job.unpublishAt|date('Y-m-d\\TH:i') : '', disabled: not published, hint: published ? t('The job goes offline by itself, e.g. at the end of applications. Search engines learn the day too.') : t('Only for a published job.'), attrs: {'data-type': 'datetime', 'data-value': job.unpublishAt ? job.unpublishAt|date('c') : null}}) }}
+                <div class="fb-form__actions">{{ ui.button({label: t('Save the times'), type: 'submit', saves: true}) }}</div>
+            </form>
+        </fb-form>
+    </section>
+    {% endif %}
+
+    {% set can_unpublish = published and can('frootbox/jobs/job.unpublish') %}
+    {% set can_delete = can('frootbox/jobs/job.delete') %}
+    {% if can_unpublish or can_delete %}
+    <section class="fb-card fb-card--padded fb-stack" aria-labelledby="job-more-title">
+        <h2 class="fb-heading-4" id="job-more-title">{{ t('Offline and delete') }}</h2>
+        <div class="fb-cluster">
+            {% if can_unpublish %}{{ ui.button({label: t('Take offline'), variant: 'outline', attrs: {commandfor: 'job-unpublish', command: 'show-modal'}}) }}{% endif %}
+            {% if can_delete %}{{ ui.button({label: t('Delete the job'), variant: 'danger', attrs: {commandfor: 'job-delete', command: 'show-modal'}}) }}{% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if has_draft and can('frootbox/jobs/job.discard') %}
+    <dialog class="fb-dialog" id="job-discard" aria-labelledby="job-discard-title">
+        <fb-form action="frootbox/jobs/job.discard" {% if published %}refresh="{{ refresh }}"{% else %}next="{{ path('frootbox.jobs.jobs') }}"{% endif %} done="{{ t('The draft is discarded.') }}">
+            <form novalidate>
+                <input type="hidden" name="id" value="{{ job.id }}">
+                <div class="fb-dialog__body">
+                    <h2 class="fb-dialog__title" id="job-discard-title">{{ t('Discard the draft?') }}</h2>
+                    <p>{{ published ? t('Your changes to this job are lost. The published version stays.') : t('The job was never published and is gone afterwards.') }}</p>
+                </div>
+                <div class="fb-dialog__actions">
+                    {{ ui.button({label: t('Keep the draft'), variant: 'outline', attrs: {commandfor: 'job-discard', command: 'close', autofocus: true}}) }}
+                    {{ ui.button({label: t('Discard'), variant: 'danger-solid', type: 'submit'}) }}
+                </div>
+            </form>
+        </fb-form>
+    </dialog>
+    {% endif %}
+
+    {% if can_unpublish %}
+    <dialog class="fb-dialog" id="job-unpublish" aria-labelledby="job-unpublish-title">
+        <fb-form action="frootbox/jobs/job.unpublish" refresh="{{ refresh }}" done="{{ t('The job is offline.') }}">
+            <form novalidate>
+                <input type="hidden" name="id" value="{{ job.id }}">
+                <div class="fb-dialog__body">
+                    <h2 class="fb-dialog__title" id="job-unpublish-title">{{ t('Take {title} offline?', {title: heading}) }}</h2>
+                    <p>{{ t('Visitors no longer find the job. It stays as a draft and can be published again.') }}</p>
+                </div>
+                <div class="fb-dialog__actions">
+                    {{ ui.button({label: t('Cancel'), variant: 'outline', attrs: {commandfor: 'job-unpublish', command: 'close', autofocus: true}}) }}
+                    {{ ui.button({label: t('Take offline'), variant: 'danger-solid', type: 'submit'}) }}
+                </div>
+            </form>
+        </fb-form>
+    </dialog>
+    {% endif %}
+
+    {% if can_delete %}
+    <dialog class="fb-dialog" id="job-delete" aria-labelledby="job-delete-title">
+        <fb-form action="frootbox/jobs/job.delete" next="{{ path('frootbox.jobs.jobs') }}" done="{{ t('The job is deleted.') }}">
+            <form novalidate>
+                <input type="hidden" name="id" value="{{ job.id }}">
+                <div class="fb-dialog__body">
+                    <h2 class="fb-dialog__title" id="job-delete-title">{{ t('Delete {title}?', {title: heading}) }}</h2>
+                    <p>{{ t('The job leaves the list and the website. Visitors no longer find it.') }}</p>
+                </div>
+                <div class="fb-dialog__actions">
+                    {{ ui.button({label: t('Cancel'), variant: 'outline', attrs: {commandfor: 'job-delete', command: 'close', autofocus: true}}) }}
+                    {{ ui.button({label: t('Delete for good'), variant: 'danger-solid', type: 'submit'}) }}
+                </div>
+            </form>
+        </fb-form>
+    </dialog>
+    {% endif %}
+</div>
+{% endblock %}

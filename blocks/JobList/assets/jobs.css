@@ -1,0 +1,57 @@
+/* SPDX-License-Identifier: MIT */
+/* The list of jobs and a job. Values come from the tokens of the theme, with fallbacks. */
+.jobs-list { display: flex; flex-direction: column; gap: var(--space-m, 1.5rem); }
+.jobs-list__title { margin: 0; font-size: var(--size-2xl, 2rem); }
+.jobs-list__items { display: flex; flex-direction: column; gap: var(--space-s, 1rem); margin: 0; padding: 0; list-style: none; }
+.jobs-list__empty { margin: 0; color: var(--color-muted, #57534e); }
+.jobs-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-s, 1rem);
+  align-items: start;
+  padding: var(--space-s, 1rem);
+  border-radius: var(--radius, 0.5rem);
+  background: var(--color-surface, #f5f5f4);
+}
+.jobs-item:has(.jobs-item__media) { grid-template-columns: 1fr minmax(6rem, 12rem); }
+.jobs-item__body { display: flex; flex-direction: column; gap: var(--space-2xs, 0.25rem); min-inline-size: 0; }
+.jobs-item__title { margin: 0; font-size: var(--size-l, 1.25rem); }
+.jobs-item__title a { color: inherit; text-decoration: none; }
+.jobs-item__title a:hover, .jobs-item__title a:focus-visible { text-decoration: underline; }
+/* The whole row takes the click of its heading. */
+.jobs-item__title a::after { content: ""; position: absolute; inset: 0; }
+.jobs-item__text { margin: 0; }
+.jobs-item__media :is(picture, img) { display: block; inline-size: 100%; block-size: auto; border-radius: var(--radius, 0.5rem); }
+.jobs-facts { margin: 0; color: var(--color-muted, #57534e); font-size: var(--size-s, 0.875rem); }
+.jobs-filter__list { display: flex; flex-wrap: wrap; gap: var(--space-2xs, 0.25rem) var(--space-xs, 0.5rem); margin: 0; padding: 0; list-style: none; }
+.jobs-filter__link {
+  display: inline-block;
+  padding: var(--space-3xs, 0.125rem) var(--space-xs, 0.5rem);
+  border: 1px solid currentcolor;
+  border-radius: 999px;
+  color: var(--color-text, #1c1917);
+  text-decoration: none;
+}
+.jobs-filter__link[aria-current="page"] { background: var(--color-text, #1c1917); color: var(--color-bg, #fff); }
+.jobs-job { display: flex; flex-direction: column; gap: var(--space-m, 1.5rem); max-inline-size: 48rem; }
+.jobs-job__head { display: flex; flex-direction: column; gap: var(--space-2xs, 0.25rem); }
+.jobs-job__title { margin: 0; font-size: var(--size-3xl, 2.5rem); }
+.jobs-job .jobs-facts { font-size: var(--size-m, 1rem); }
+.jobs-job__teaser { margin: 0; font-size: var(--size-l, 1.25rem); }
+.jobs-job__media :is(picture, img) { display: block; inline-size: 100%; block-size: auto; border-radius: var(--radius, 0.5rem); }
+.jobs-job__text > :first-child { margin-block-start: 0; }
+.jobs-job__text:empty { display: none; }
+.jobs-job__apply, .jobs-job__back { margin: 0; }
+.jobs-contact { display: flex; flex-direction: column; gap: var(--space-xs, 0.5rem); }
+.jobs-contact__title { margin: 0; font-size: var(--size-l, 1.25rem); }
+.jobs-contact__card { display: flex; gap: var(--space-s, 1rem); align-items: center; }
+.jobs-contact__photo { flex: 0 0 5rem; }
+.jobs-contact__photo :is(picture, img) { display: block; inline-size: 100%; block-size: auto; border-radius: 50%; }
+.jobs-contact__body { display: flex; flex-direction: column; gap: var(--space-3xs, 0.125rem); }
+.jobs-contact__name { margin: 0; font-weight: 600; }
+.jobs-contact__role { margin: 0; color: var(--color-muted, #57534e); }
+.jobs-contact__ways { display: flex; flex-wrap: wrap; gap: var(--space-2xs, 0.25rem) var(--space-s, 1rem); margin: 0; padding: 0; list-style: none; }
+@container (max-width: 30rem) {
+  .jobs-item:has(.jobs-item__media) { grid-template-columns: 1fr; }
+}
