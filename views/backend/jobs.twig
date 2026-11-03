@@ -13,7 +13,7 @@
         </div>
         <div class="fb-cluster">
             {% if can('category.update') %}{{ ui.button({label: t('Categories'), href: path('backend.categories') ~ '?group=frootbox/jobs/categories', variant: 'outline'}) }}{% endif %}
-            {% if can('frootbox/jobs/job.create') %}{{ ui.button({label: t('New job'), href: path('frootbox.jobs.jobs.new') ~ (space ? '?space=' ~ space|url_encode : ''), icon: 'plus'}) }}{% endif %}
+            {% if can_within('frootbox/jobs/job.create', 'space:frootbox/jobs/job:' ~ (space ?: 'default')) %}{{ ui.button({label: t('New job'), href: path('frootbox.jobs.jobs.new') ~ (space ? '?space=' ~ space|url_encode : ''), icon: 'plus'}) }}{% endif %}
         </div>
     </header>
 
@@ -36,7 +36,7 @@
             {% if search %}
                 {{ ui.empty({icon: 'briefcase', title: t('Nothing found'), text: t('Try another search.')}) }}
             {% else %}
-                {{ ui.empty({icon: 'briefcase', title: t('No jobs yet'), text: t('Create the first one. It stays a draft until you publish it.'), action: can('frootbox/jobs/job.create') ? {label: t('New job'), href: path('frootbox.jobs.jobs.new') ~ (space ? '?space=' ~ space|url_encode : ''), icon: 'plus'} : null}) }}
+                {{ ui.empty({icon: 'briefcase', title: t('No jobs yet'), text: t('Create the first one. It stays a draft until you publish it.'), action: can_within('frootbox/jobs/job.create', 'space:frootbox/jobs/job:' ~ (space ?: 'default')) ? {label: t('New job'), href: path('frootbox.jobs.jobs.new') ~ (space ? '?space=' ~ space|url_encode : ''), icon: 'plus'} : null}) }}
             {% endif %}
         </div>
         {% else %}

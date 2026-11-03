@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Frootbox\Jobs;
 
+use Frootbox\Core\Plugin\SpaceScopes;
 use Frootbox\Core\Revision\Revisions;
 use Frootbox\Core\Search\AsSearchSource;
 use Frootbox\Core\Search\PublishedEntry;
@@ -59,6 +60,9 @@ final readonly class JobSource implements PublishedSource
                     text: $this->text($text),
                     permission: 'frootbox/jobs/job.show',
                     language: $language,
+                    // Only for roles within its space (decision 0245).
+                    scopeKind: SpaceScopes::KIND,
+                    scopeId: SpaceScopes::object(JobStore::TYPE, $id)->id,
                 );
             }
         }

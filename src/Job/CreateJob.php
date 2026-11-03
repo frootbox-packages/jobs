@@ -14,14 +14,17 @@ use Frootbox\Core\Action\Schema\Description;
 use Frootbox\Core\Action\Schema\Length;
 use Frootbox\Core\Action\Schema\ListOf;
 use Frootbox\Core\Action\Schema\Pattern;
+use Frootbox\Core\Auth\Scope;
+use Frootbox\Core\Auth\Scoped;
 use Frootbox\Core\Plugin\Space;
+use Frootbox\Core\Plugin\SpaceScopes;
 use Frootbox\Database\Ulid;
 
 /**
  * @implements Action<JobDetails>
  */
 #[AsAction('frootbox/jobs/job.create', 'Creates a job as a draft; frootbox/jobs/job.publish puts it online')]
-final readonly class CreateJob implements Action
+final readonly class CreateJob implements Action, Scoped
 {
     private const string NAME = 'frootbox/jobs/job.create';
 
@@ -65,6 +68,16 @@ final readonly class CreateJob implements Action
         #[Description('Further fields the views of the theme add, by name; a text one per language, e.g. {"subtitle": {"de": "…"}}, null removes one; see object.fields')]
         public array $fields = [],
     ) {}
+
+    /**
+     * The space it is created in (decision 0245).
+     *
+     * @return list<Scope>
+     */
+    public function scopes(): array
+    {
+        return [SpaceScopes::space(JobStore::TYPE, $this->space)];
+    }
 
     public function handle(JobEditor $editor): JobDetails
     {

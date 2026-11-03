@@ -13,13 +13,16 @@ use Frootbox\Core\Action\AsAction;
 use Frootbox\Core\Action\Schema\Description;
 use Frootbox\Core\Action\Schema\ListOf;
 use Frootbox\Core\Action\Schema\Pattern;
+use Frootbox\Core\Auth\Scope;
+use Frootbox\Core\Auth\Scoped;
+use Frootbox\Core\Plugin\SpaceScopes;
 use Frootbox\Database\Ulid;
 
 /**
  * @implements Action<JobDetails>
  */
 #[AsAction('frootbox/jobs/job.update', 'Changes the draft of a job; what is left out stays as it is')]
-final readonly class UpdateJob implements Action
+final readonly class UpdateJob implements Action, Scoped
 {
     private const string NAME = 'frootbox/jobs/job.update';
 
@@ -63,6 +66,23 @@ final readonly class UpdateJob implements Action
         #[Description('The space to move it to; with publishing its address moves below the page of that space and the old one redirects')]
         public ?string $space = null,
     ) {}
+
+    /**
+     * The object and, when it moves, the new space (decision 0245).
+     *
+     * @return list<Scope>
+     */
+    public function scopes(): array
+    {
+        $scopes = [SpaceScopes::object(JobStore::TYPE, $this->id)];
+
+        // Moving needs the rights in the new space too (decision 0244).
+        if (null !== $this->space) {
+            $scopes[] = SpaceScopes::space(JobStore::TYPE, $this->space);
+        }
+
+        return $scopes;
+    }
 
     public function handle(JobEditor $editor, JobStore $store): JobDetails
     {

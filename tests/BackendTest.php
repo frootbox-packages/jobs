@@ -11,9 +11,14 @@ namespace Frootbox\Jobs\Tests;
 use Frootbox\Backend\Tests\Support\BackendTestCase;
 use Frootbox\Core\Action\Context;
 use Frootbox\Core\Extension\Extensions;
+use Frootbox\Core\Plugin\CreateSpace;
+use Frootbox\Core\Plugin\SpaceScopes;
+use Frootbox\Core\User\AssignRole;
 use Frootbox\Core\User\CreateRole;
 use Frootbox\Jobs\Backend\JobHandler;
 use Frootbox\Jobs\Backend\JobsHandler;
+use Frootbox\Jobs\Job\CreateJob;
+use Frootbox\Jobs\Job\JobStore;
 use Frootbox\Jobs\JobsExtension;
 use Frootbox\People\Tests\PeopleTestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -92,6 +97,44 @@ final class BackendTest extends BackendTestCase
 
         self::assertStringNotContainsString('href="/cms/vacancies"', $this->html($this->request('GET', '/cms', session: $session)));
         self::assertSame(403, $this->request('GET', '/cms/vacancies', session: $session)->getStatusCode());
+    }
+
+    public function testAnEditorWithinASpaceSeesOnlyItsJobs(): void
+    {
+        $training = $this->runner()->run(new CreateSpace(JobStore::TYPE, 'Ausbildung'), Context::system())->id;
+        $outside = $this->runner()->run(new CreateJob(['de' => ['title' => 'Koch (m/w/d)']]), Context::system())->id;
+        $inside = $this->runner()->run(new CreateJob(['de' => ['title' => 'Azubi Koch (m/w/d)']], space: $training), Context::system())->id;
+        $trainer = $this->createUser('trainer@example.org', []);
+        $this->runner()->run(new AssignRole($trainer, 'editor', 'space:' . SpaceScopes::id(JobStore::TYPE, $training)), Context::system());
+        $session = $this->signIn('trainer@example.org');
+
+        // One space only: no tabs, its list, new jobs go there (decision 0245).
+        $list = $this->html($this->request('GET', '/cms/vacancies', session: $session));
+        self::assertStringContainsString('href="/cms/vacancies/' . $inside . '"', $list);
+        self::assertStringNotContainsString('href="/cms/vacancies/' . $outside . '"', $list);
+        self::assertStringNotContainsString('class="fb-tabs"', $list);
+        self::assertStringContainsString('href="/cms/vacancies/new?space=' . $training . '"', $list);
+        self::assertSame(403, $this->request('GET', '/cms/vacancies/' . $outside, session: $session)->getStatusCode());
+
+        $show = $this->html($this->request('GET', '/cms/vacancies/' . $inside, session: $session));
+        self::assertStringNotContainsString('name="space"', $show, 'Nowhere to move it to.');
+
+        // With a second space the tabs and the choice show only these two.
+        $archive = $this->runner()->run(new CreateSpace(JobStore::TYPE, 'Archiv'), Context::system())->id;
+        $this->runner()->run(new AssignRole($trainer, 'editor', 'space:' . SpaceScopes::id(JobStore::TYPE, $archive)), Context::system());
+        $list = $this->html($this->request('GET', '/cms/vacancies', session: $session));
+        self::assertStringContainsString('?space=' . $training . '"', $list);
+        self::assertStringContainsString('?space=' . $archive . '"', $list);
+        self::assertStringNotContainsString('?space=default', $list);
+        $show = $this->html($this->request('GET', '/cms/vacancies/' . $inside, session: $session));
+        self::assertStringContainsString('<option value="' . $archive . '">Archiv</option>', $show);
+        self::assertStringNotContainsString('<option value="default"', $show);
+
+        $this->createUser('admin@example.org', ['admin']);
+        $user = $this->html($this->request('GET', '/cms/users/' . $trainer, session: $this->signIn('admin@example.org')));
+        self::assertStringContainsString('id="user-spaces"', $user);
+        self::assertStringContainsString('Stellenangebote · Ausbildung', $user);
+        self::assertStringContainsString('value="space:frootbox/jobs/job:default"', $user, 'Every space can be chosen.');
     }
 
     /**
