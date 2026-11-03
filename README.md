@@ -48,7 +48,9 @@ Further fields (decision 0240): a view of the theme declares them under
 `object: fields:` in its header, e.g. an override of `JobList`, and
 the actions take them as `fields`; `object.fields` with the type
 `frootbox/jobs/job` lists them. The form in the backend shows them under
-"More fields".
+"More fields". In the editing mode editors change them right on the page
+(`object.update-field`), and the editor bar publishes the job with the page
+(decision 0241).
 
 ## In a template
 
