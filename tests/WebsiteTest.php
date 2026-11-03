@@ -22,8 +22,10 @@ use Frootbox\Forms\Form\PublishForm;
 use Frootbox\Jobs\Blocks\JobList;
 use Frootbox\Jobs\Blocks\JobTeaser;
 use Frootbox\Jobs\Job\JobStore;
+use Frootbox\Jobs\Job\PublishJobs;
 use Frootbox\Jobs\Job\ScheduleJob;
 use Frootbox\Jobs\Job\UnpublishJob;
+use Frootbox\Jobs\Job\UpdateJob;
 use Frootbox\Jobs\Job\Workplace;
 use Frootbox\Jobs\JobPlugin;
 use Frootbox\Jobs\Website\JobRendering;
@@ -265,5 +267,20 @@ final class WebsiteTest extends JobsTestCase
         self::assertSame(404, $this->statusOf('/jobs/azubi-roester'), 'Not below the page of another space.');
         self::assertStringNotContainsString('Barista', $this->html('/jobs/ausbildung'), 'Only the jobs of its space.');
         self::assertStringNotContainsString('Azubi Röster', $this->html('/jobs'));
+    }
+
+    public function testAJobMovesToAnotherSpaceWithPublishing(): void
+    {
+        $training = $this->runner()->run(new CreateSpace(JobStore::TYPE, 'Ausbildung'))->id;
+        $page = $this->jobsPage($this->jobs, 'Ausbildung', space: $training);
+        $this->runner()->run(new PublishPages([$page]));
+        $id = $this->job(['de' => ['title' => 'Azubi Röster']], ['apprenticeship']);
+
+        $this->runner()->run(new UpdateJob($id, space: $training));
+        self::assertSame(200, $this->statusOf('/jobs/azubi-roester'), 'In the draft first (decision 0244).');
+        $this->runner()->run(new PublishJobs([$id]));
+        $moved = $this->request('/jobs/azubi-roester');
+        self::assertSame([301, '/jobs/ausbildung/azubi-roester'], [$moved->getStatusCode(), $moved->getHeaderLine('Location')]);
+        self::assertStringContainsString('Azubi Röster', $this->html('/jobs/ausbildung'));
     }
 }

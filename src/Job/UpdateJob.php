@@ -60,6 +60,8 @@ final readonly class UpdateJob implements Action
         public ?array $tags = null,
         #[Description('Further fields the views of the theme add, by name; a text one per language, e.g. {"subtitle": {"de": "…"}}, null removes one, the others stay; see object.fields; left out keeps them')]
         public ?array $fields = null,
+        #[Description('The space to move it to; with publishing its address moves below the page of that space and the old one redirects')]
+        public ?string $space = null,
     ) {}
 
     public function handle(JobEditor $editor, JobStore $store): JobDetails
@@ -78,9 +80,9 @@ final readonly class UpdateJob implements Action
                 default => $this->image,
             },
             null === $this->translations ? $current->translations : $editor->translations(self::NAME, $this->translations, $current->translations),
-            $current->space,
+            $this->space ?? $current->space,
             null === $this->categories ? $current->categories : $editor->categories(self::NAME, $this->categories),
-            null === $this->tags ? $current->tags : $editor->tags(self::NAME, $current->space, $this->tags),
+            null === $this->tags ? $current->tags : $editor->tags(self::NAME, $this->space ?? $current->space, $this->tags),
             null === $this->fields ? $current->fields : $editor->fields(self::NAME, $current->fields, $this->fields),
         );
 
