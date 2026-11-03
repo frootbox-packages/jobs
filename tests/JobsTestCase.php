@@ -30,7 +30,7 @@ use Frootbox\Jobs\Job\Workplace;
 use Frootbox\People\Location\CreateLocation;
 use Frootbox\People\Location\PublishLocation;
 use Frootbox\People\Person\CreatePerson;
-use Frootbox\People\Person\PublishPerson;
+use Frootbox\People\Person\PublishPeople;
 use Frootbox\People\Tests\PeopleTestCase;
 use Nyholm\Psr7\ServerRequest;
 use Psr\Http\Message\ResponseInterface;
@@ -163,7 +163,7 @@ abstract class JobsTestCase extends NotesTestCase
     protected function person(string $givenName, string $familyName, string $email = ''): string
     {
         $id = $this->runner()->run(new CreatePerson($givenName, $familyName, email: $email, translations: ['de' => ['role' => 'Leitung Café']]))->id;
-        $this->runner()->run(new PublishPerson($id));
+        $this->runner()->run(new PublishPeople([$id]));
 
         return $id;
     }
