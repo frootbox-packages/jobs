@@ -24,19 +24,24 @@ offline geht, etwa zum Ende der Bewerbungsfrist.
 
 ## Auf der Website zeigen
 
-Füg einer Seite den Block **Stellenangebote** hinzu. Er zeigt die
-offenen Stellen, die neuesten zuerst. Haben die Stellen verschiedene
+Eine Seite zeigt die Stellen, wenn ein Admin es in ihren Einstellungen
+unter **Diese Seite zeigt** wählt. Dort stehen die offenen Stellen, die
+neuesten zuerst. Haben die Stellen verschiedene
 Arten oder Standorte, können Besucher danach filtern. Jede Stelle bekommt
 eine eigene Adresse unter dieser Seite, z. B. `/jobs/barista-m-w-d`.
 
-Wähl in den Optionen des Blocks ein **Bewerbungsformular** aus
+Wähl im Bearbeitungsmodus in den Einstellungen der Liste ein **Bewerbungsformular** aus
 **Formulare**. Es erscheint an jeder Stelle, und jede Einsendung nennt
 unter **Betrifft**, auf welche Stelle sie sich bezieht. Mit einem Feld
 **Dateien** schicken Bewerber Lebenslauf und Zeugnisse mit. Ohne Formular
 bietet die Stelle eine Bewerbung per E-Mail an die Ansprechperson an.
 
+Für Ausbildungsplätze mit eigener Seite, etwa `/karriere/ausbildung`,
+legt ein Admin dort eine weitere **Verwaltung** an.
+
 Der Block **Neueste Stellen** zeigt die neuesten Stellen, etwa auf der
-Startseite, mit einem Link auf alle.
+Startseite, aus allen Verwaltungen oder aus einer, mit einem Link auf
+alle.
 
 ## Suchmaschinen
 

@@ -12,9 +12,13 @@
             <p class="fb-muted">{{ t('Open positions, apprenticeships and internships. Visitors apply through the form on each job.') }}</p>
         </div>
         <div class="fb-cluster">
-            {% if can('frootbox/jobs/job.create') %}{{ ui.button({label: t('New job'), href: path('frootbox.jobs.jobs.new'), icon: 'plus'}) }}{% endif %}
+            {% if can('frootbox/jobs/job.create') %}{{ ui.button({label: t('New job'), href: path('frootbox.jobs.jobs.new') ~ (space ? '?space=' ~ space|url_encode : ''), icon: 'plus'}) }}{% endif %}
         </div>
     </header>
+
+    {% if spaces %}
+    {{ ui.tabs(t('Spaces'), spaces|map(item => {label: item.title, href: path('frootbox.jobs.jobs') ~ '?space=' ~ item.id|url_encode, current: item.id == space})) }}
+    {% endif %}
 
     <section class="fb-card" aria-labelledby="jobs-jobs-title">
         <div class="fb-card__header">
@@ -22,6 +26,7 @@
             {{ ui.badge('neutral', list.total) }}
         </div>
         <form class="fb-card__body fb-cluster" method="get" action="{{ path('frootbox.jobs.jobs') }}" role="search">
+            {% if space %}<input type="hidden" name="space" value="{{ space }}">{% endif %}
             {{ ui.field({label: t('Search'), name: 'q', id: 'jobs-search', type: 'search', value: search, placeholder: t('Title')}) }}
             {{ ui.button({label: t('Search'), variant: 'outline', type: 'submit', icon: 'search'}) }}
         </form>
@@ -30,7 +35,7 @@
             {% if search %}
                 {{ ui.empty({icon: 'briefcase', title: t('Nothing found'), text: t('Try another search.')}) }}
             {% else %}
-                {{ ui.empty({icon: 'briefcase', title: t('No jobs yet'), text: t('Create the first one. It stays a draft until you publish it.'), action: can('frootbox/jobs/job.create') ? {label: t('New job'), href: path('frootbox.jobs.jobs.new'), icon: 'plus'} : null}) }}
+                {{ ui.empty({icon: 'briefcase', title: t('No jobs yet'), text: t('Create the first one. It stays a draft until you publish it.'), action: can('frootbox/jobs/job.create') ? {label: t('New job'), href: path('frootbox.jobs.jobs.new') ~ (space ? '?space=' ~ space|url_encode : ''), icon: 'plus'} : null}) }}
             {% endif %}
         </div>
         {% else %}
@@ -50,9 +55,9 @@
     </section>
     {% if list.pages > 1 %}
     <nav class="fb-cluster" aria-label="{{ t('Pages of the list') }}">
-        {% if list.page > 1 %}{{ ui.button({label: t('Newer'), href: path('frootbox.jobs.jobs') ~ '?' ~ {q: search ?: null, page: list.page - 1}|url_encode, variant: 'outline', small: true}) }}{% endif %}
+        {% if list.page > 1 %}{{ ui.button({label: t('Newer'), href: path('frootbox.jobs.jobs') ~ '?' ~ {q: search ?: null, space: space, page: list.page - 1}|url_encode, variant: 'outline', small: true}) }}{% endif %}
         <span class="fb-muted">{{ t('Page {page} of {pages}', {page: list.page, pages: list.pages}) }}</span>
-        {% if list.page < list.pages %}{{ ui.button({label: t('Older'), href: path('frootbox.jobs.jobs') ~ '?' ~ {q: search ?: null, page: list.page + 1}|url_encode, variant: 'outline', small: true}) }}{% endif %}
+        {% if list.page < list.pages %}{{ ui.button({label: t('Older'), href: path('frootbox.jobs.jobs') ~ '?' ~ {q: search ?: null, space: space, page: list.page + 1}|url_encode, variant: 'outline', small: true}) }}{% endif %}
     </nav>
     {% endif %}
 </div>

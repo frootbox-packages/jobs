@@ -54,9 +54,12 @@ final readonly class JobHandler implements RequestHandlerInterface
         ];
 
         if (!\is_string($id)) {
+            $space = $request->getQueryParams()['space'] ?? null;
+
             return $this->view->render($request, '@frootbox/jobs/backend/job-new.twig', [
                 'language' => $this->languages->default(),
                 ...$choices,
+                'space' => \is_string($space) && '' !== $space ? $space : null,
             ]);
         }
 

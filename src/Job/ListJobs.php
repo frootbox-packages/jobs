@@ -31,6 +31,8 @@ final readonly class ListJobs implements Query
         public int $page = 1,
         #[Range(min: 1, max: 200)]
         public int $perPage = 50,
+        #[Description('Only the jobs of this space; left out for all')]
+        public ?string $space = null,
     ) {}
 
     public function handle(JobStore $store, Languages $languages): JobList
@@ -42,6 +44,10 @@ final readonly class ListJobs implements Query
         foreach ($store->ids() as $id) {
             $details = $store->details($id);
             $data = $details->current();
+
+            if (null !== $this->space && $data->space !== $this->space) {
+                continue;
+            }
             $title = $data->text($language)->title ?? '';
 
             if ('' !== $search && !str_contains(mb_strtolower($title), $search)) {

@@ -67,6 +67,7 @@ final readonly class UpdateJob implements Action
                 default => $this->image,
             },
             null === $this->translations ? $current->translations : $editor->translations(self::NAME, $this->translations, $current->translations),
+            $current->space,
         );
 
         return $editor->saveDraft(self::NAME, $this->id, $data);

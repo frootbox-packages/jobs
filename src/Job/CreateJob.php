@@ -11,8 +11,10 @@ namespace Frootbox\Jobs\Job;
 use Frootbox\Core\Action\Action;
 use Frootbox\Core\Action\AsAction;
 use Frootbox\Core\Action\Schema\Description;
+use Frootbox\Core\Action\Schema\Length;
 use Frootbox\Core\Action\Schema\ListOf;
 use Frootbox\Core\Action\Schema\Pattern;
+use Frootbox\Core\Plugin\Space;
 use Frootbox\Database\Ulid;
 
 /**
@@ -48,6 +50,9 @@ final readonly class CreateJob implements Action
         public string $contact = '',
         #[Description('An image from the media library: {"media": "<id>", "alt": "…"}')]
         public ?array $image = null,
+        #[Length(1, 64)]
+        #[Description('The space of the jobs, "default" for the default one; see space.list')]
+        public string $space = Space::DEFAULT,
     ) {}
 
     public function handle(JobEditor $editor): JobDetails
@@ -61,6 +66,7 @@ final readonly class CreateJob implements Action
             $editor->reference(self::NAME, 'contact', $this->contact),
             [] === $this->image ? null : $this->image,
             $editor->translations(self::NAME, $this->translations),
+            $this->space,
         );
 
         return $editor->saveDraft(self::NAME, Ulid::generate(), $data);

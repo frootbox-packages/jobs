@@ -14,11 +14,17 @@ use Frootbox\Core\Extension\Extensions;
 use Frootbox\Core\Http\Exception\HttpException;
 use Frootbox\Core\Page\CreatePage;
 use Frootbox\Core\Page\PageHandler;
+use Frootbox\Core\Page\ShowPage;
+use Frootbox\Core\Page\TranslationData;
+use Frootbox\Core\Page\UpdateBlock;
+use Frootbox\Core\Plugin\AssignPlugin;
+use Frootbox\Core\Plugin\Space;
 use Frootbox\Core\Tests\Support\FixtureSite;
 use Frootbox\Core\Tests\Support\NotesTestCase;
 use Frootbox\Forms\Entry\Entries;
 use Frootbox\Forms\Website\Sendings;
 use Frootbox\Jobs\Job\CreateJob;
+use Frootbox\Jobs\Job\JobStore;
 use Frootbox\Jobs\Job\PublishJobs;
 use Frootbox\Jobs\Job\Workplace;
 use Frootbox\People\Location\CreateLocation;
@@ -84,15 +90,52 @@ abstract class JobsTestCase extends NotesTestCase
     }
 
     /**
+     * A page that shows the jobs (decision 0232), with the options of the
+     * view of the plugin.
+     *
+     * @param array<string, mixed> $options
+     */
+    protected function jobsPage(?string $parentId, string $title, array $options = [], string $space = Space::DEFAULT): string
+    {
+        $id = $this->page($parentId, $title);
+        $details = $this->runner()->run(new AssignPlugin($id, JobStore::TYPE, $space));
+
+        if ([] !== $options) {
+            $this->options($id, $options, $details->draft->translations ?? []);
+        }
+
+        return $id;
+    }
+
+    /**
+     * Sets the options of the view of the plugin of a page.
+     *
+     * @param array<string, mixed>             $options
+     * @param array<string, TranslationData>|null $translations
+     */
+    protected function options(string $id, array $options, ?array $translations = null): void
+    {
+        $details = null === $translations ? $this->runner()->ask(new ShowPage($id)) : null;
+
+        foreach ($translations ?? ($details->draft ?? $details?->published)->translations ?? [] as $language => $translation) {
+            $view = $translation->content['plugin'] ?? null;
+
+            if (\is_array($view) && \is_string($view['id'] ?? null)) {
+                $this->runner()->run(new UpdateBlock($id, $language, $view['id'], options: $options));
+            }
+        }
+    }
+
+    /**
      * A job, published unless told otherwise.
      *
      * @param array<string, mixed> $translations
      * @param list<string>         $types
      * @param array<mixed>|null    $salary
      */
-    protected function job(array $translations, array $types = ['full-time'], string $start = '', Workplace $workplace = Workplace::OnSite, ?array $salary = null, string $location = '', string $contact = '', bool $publish = true): string
+    protected function job(array $translations, array $types = ['full-time'], string $start = '', Workplace $workplace = Workplace::OnSite, ?array $salary = null, string $location = '', string $contact = '', bool $publish = true, string $space = Space::DEFAULT): string
     {
-        $details = $this->runner()->run(new CreateJob($translations, $types, $start, $workplace, $salary, $location, $contact));
+        $details = $this->runner()->run(new CreateJob($translations, $types, $start, $workplace, $salary, $location, $contact, space: $space));
 
         if ($publish) {
             $this->runner()->run(new PublishJobs([$details->id]));

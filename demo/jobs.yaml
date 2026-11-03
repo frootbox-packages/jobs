@@ -66,9 +66,7 @@
             title: Jobs bei Bohnenglück
             intro: Wir suchen Menschen, die Kaffee so lieben wie wir. Im Café, in der Rösterei und als Azubi.
           areas:
-            main:
-              - block: frootbox/jobs/JobList
-                options: { form: '${application.id}' }
+            main: []
       en:
         title: Jobs
         content:
@@ -76,10 +74,12 @@
             title: Jobs at Bohnenglück
             intro: We are looking for people who love coffee as much as we do. In the café, at the roastery and as apprentices.
           areas:
-            main:
-              - block: frootbox/jobs/JobList
-                options: { form: '${application.id}' }
+            main: []
   as: page
+- plugin.assign: { id: '${page.id}', type: frootbox/jobs/job }
+  as: assigned
+- page.update-block: { id: '${page.id}', language: de, block: '${assigned.draft.translations.de.content.plugin.id}', options: { form: '${application.id}' } }
+- page.update-block: { id: '${page.id}', language: en, block: '${assigned.draft.translations.en.content.plugin.id}', options: { form: '${application.id}' } }
 - page.publish: { ids: ['${page.id}'] }
 
 - frootbox/jobs/job.create:

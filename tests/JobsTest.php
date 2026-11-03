@@ -174,7 +174,7 @@ final class JobsTest extends JobsTestCase
 
     public function testJobsAreFoundAndEditorsMayChangeThem(): void
     {
-        $page = $this->page(null, 'Start', [['block' => 'frootbox/jobs/JobList']]);
+        $page = $this->jobsPage(null, 'Start');
         $this->runner()->run(new PublishPages([$page]));
         $id = $this->job(['de' => ['title' => 'Barista', 'teaser' => 'Milchschaum mit Herz.']]);
 

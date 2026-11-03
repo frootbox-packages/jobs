@@ -10,23 +10,24 @@ namespace Frootbox\Jobs\Tests;
 
 use DateTimeImmutable;
 use Frootbox\Core\Page\PublishPages;
-use Frootbox\Core\Page\UpdatePage;
+use Frootbox\Core\Plugin\CreateSpace;
 use Frootbox\Forms\Form\AddField;
 use Frootbox\Forms\Form\CreateForm;
 use Frootbox\Forms\Form\FieldType;
 use Frootbox\Forms\Form\PublishForm;
 use Frootbox\Jobs\Blocks\JobList;
 use Frootbox\Jobs\Blocks\JobTeaser;
+use Frootbox\Jobs\Job\JobStore;
 use Frootbox\Jobs\Job\ScheduleJob;
 use Frootbox\Jobs\Job\UnpublishJob;
 use Frootbox\Jobs\Job\Workplace;
-use Frootbox\Jobs\JobPages;
+use Frootbox\Jobs\JobPlugin;
 use Frootbox\Jobs\Website\JobRendering;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(JobList::class)]
 #[CoversClass(JobTeaser::class)]
-#[CoversClass(JobPages::class)]
+#[CoversClass(JobPlugin::class)]
 #[CoversClass(JobRendering::class)]
 final class WebsiteTest extends JobsTestCase
 {
@@ -39,7 +40,7 @@ final class WebsiteTest extends JobsTestCase
         parent::setUp();
 
         $this->start = $this->page(null, 'Start', [['block' => 'frootbox/jobs/JobTeaser', 'options' => ['count' => 2]]]);
-        $this->jobs = $this->page($this->start, 'Jobs', [['block' => 'frootbox/jobs/JobList']]);
+        $this->jobs = $this->jobsPage($this->start, 'Jobs');
         $this->runner()->run(new PublishPages([$this->start, $this->jobs]));
     }
 
@@ -138,7 +139,7 @@ final class WebsiteTest extends JobsTestCase
         $this->runner()->run(new AddField($form, FieldType::Text, ['de' => ['label' => 'Name']], true));
         $this->runner()->run(new AddField($form, FieldType::Files, ['de' => ['label' => 'Lebenslauf']], true));
         $this->runner()->run(new PublishForm($form));
-        $this->runner()->run(new UpdatePage($this->jobs, ['de' => ['content' => ['fields' => ['heading' => 'Jobs'], 'areas' => ['main' => [['block' => 'frootbox/jobs/JobList', 'options' => ['form' => $form]]]]]]]));
+        $this->options($this->jobs, ['form' => $form]);
         $this->runner()->run(new PublishPages([$this->jobs]));
         $id = $this->job(['de' => ['title' => 'Barista']]);
 
@@ -162,5 +163,19 @@ final class WebsiteTest extends JobsTestCase
         self::assertMatchesRegularExpression('~Dritte.*Zweite~s', $html);
         self::assertStringNotContainsString('Erste', $html, 'Two of three.');
         self::assertStringContainsString('<a href="/jobs">Alle Stellen</a>', $html);
+    }
+
+    public function testASpaceHasItsJobsBelowItsOwnPage(): void
+    {
+        $training = $this->runner()->run(new CreateSpace(JobStore::TYPE, 'Ausbildung'))->id;
+        $page = $this->jobsPage($this->jobs, 'Ausbildung', space: $training);
+        $this->runner()->run(new PublishPages([$page]));
+        $this->job(['de' => ['title' => 'Azubi Röster']], ['apprenticeship'], space: $training);
+        $this->job(['de' => ['title' => 'Barista']]);
+
+        self::assertSame(200, $this->statusOf('/jobs/ausbildung/azubi-roester'));
+        self::assertSame(404, $this->statusOf('/jobs/azubi-roester'), 'Not below the page of another space.');
+        self::assertStringNotContainsString('Barista', $this->html('/jobs/ausbildung'), 'Only the jobs of its space.');
+        self::assertStringNotContainsString('Azubi Röster', $this->html('/jobs'));
     }
 }

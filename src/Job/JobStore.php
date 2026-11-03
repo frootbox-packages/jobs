@@ -115,15 +115,19 @@ final readonly class JobStore
     }
 
     /**
-     * The published jobs, the newest first.
+     * The published jobs, the newest first; with a space only its jobs.
      *
      * @return list<PublishedJob>
      */
-    public function allPublished(): array
+    public function allPublished(?string $space = null): array
     {
         $jobs = [];
 
         foreach ($this->revisions->fetch(['where' => ['type' => self::TYPE, 'status' => RevisionStatus::Published->value], 'order' => 'id']) as $revision) {
+            if (null !== $space && $space !== JobData::fromArray($revision->data)->space) {
+                continue;
+            }
+
             $jobs[] = new PublishedJob(
                 $revision->entityId,
                 $this->load($revision->data),

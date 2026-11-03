@@ -1,7 +1,6 @@
 # German texts of the jobs: labels of the blocks, texts for visitors and the screen (decisions 0161, 0231).
 "Jobs": "Stellenangebote"
 "Newest jobs": "Neueste Stellen"
-"The open jobs, the newest first, filtered by kind and location. Each job gets its own address below the first page with this block; there the block shows the job with the person to contact and the application form.": "Die offenen Stellen, die neuesten zuerst, nach Art und Standort filterbar. Jede Stelle bekommt eine eigene Adresse unter der ersten Seite mit diesem Block; dort zeigt der Block die Stelle mit Ansprechperson und Bewerbungsformular."
 "The newest open jobs, e.g. on the start page, with a link to all of them.": "Die neuesten offenen Stellen, z. B. auf der Startseite, mit einem Link auf alle."
 "Application form": "Bewerbungsformular"
 "Images in the list": "Bilder in der Liste"
@@ -78,3 +77,6 @@
 "Save as a draft": "Als Entwurf speichern"
 "Teaser": "Anriss"
 "A few sentences for the list and for search engines.": "Ein paar Sätze für die Liste und für Suchmaschinen."
+"The open jobs of the space the page shows, the newest first, filtered by kind and location. Each job gets its own address below the page; there it shows the job with the person to contact and the application form.": "Die offenen Stellen der Verwaltung, die die Seite zeigt, die neuesten zuerst, nach Art und Standort filterbar. Jede Stelle bekommt eine eigene Adresse unter der Seite; dort steht die Stelle mit Ansprechperson und Bewerbungsformular."
+"There is no such space of the jobs.": "Diese Verwaltung gibt es in den Stellenangeboten nicht."
+Space: Verwaltung

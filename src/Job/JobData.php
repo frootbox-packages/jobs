@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace Frootbox\Jobs\Job;
 
+use Frootbox\Core\Plugin\Space;
+
 /**
  * A job as its draft or published version holds it (decision 0231).
  */
@@ -34,6 +36,8 @@ final readonly class JobData
         public ?string $contact = null,
         public ?array $image = null,
         public array $translations = [],
+        /** The space of the jobs it belongs to (decision 0232) */
+        public string $space = Space::DEFAULT,
     ) {}
 
     /**
@@ -68,6 +72,7 @@ final readonly class JobData
             self::id($data['contact'] ?? null),
             \is_array($data['image'] ?? null) ? $data['image'] : null,
             $translations,
+            \is_string($data['space'] ?? null) && '' !== $data['space'] ? $data['space'] : Space::DEFAULT,
         );
     }
 
@@ -85,6 +90,7 @@ final readonly class JobData
             'contact' => $this->contact,
             'image' => $this->image,
             'translations' => array_map(static fn(JobText $text): array => $text->toArray(), $this->translations),
+            'space' => $this->space,
         ];
     }
 

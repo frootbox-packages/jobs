@@ -4,16 +4,17 @@ Jobs for the Frootbox CMS: open positions with drafts, versions and
 planned publishing, the kind of job, start, workplace, salary, a location
 and a contact from `frootbox/people`, and two blocks for any theme.
 
-- **Jobs** (`frootbox/jobs/JobList`) lists the open jobs, the newest
-  first, filtered by kind (`?type=part-time`) and location
-  (`?location=<slug of its name>`) without a script. Each published job
-  gets an address below the first page with this block, e.g.
-  `/jobs/barista`; there the block shows the job with its contact,
+- **Jobs** (`frootbox/jobs/JobList`) is the view of the plugin (decision
+  0232): a page that shows a space of the jobs lists its open jobs at
+  `plugin()`, the newest first, filtered by kind (`?type=part-time`) and
+  location (`?location=<slug of its name>`) without a script. Each
+  published job gets an address below that page, e.g. `/jobs/barista`;
+  there the view shows the job with its contact,
   structured data `JobPosting` and the application form chosen in its
   options (`form`, from `frootbox/forms`). Each entry of that form keeps
   the job it is about.
-- **Newest jobs** (`frootbox/jobs/JobTeaser`) shows the newest few with a
-  link to the list.
+- **Newest jobs** (`frootbox/jobs/JobTeaser`) shows the newest few of all
+  spaces or of one, with a link to the list.
 
 Jobs have no tables: drafts and published versions live in `revisions`.
 When a job goes offline by itself (`unpublishAt`), search engines learn

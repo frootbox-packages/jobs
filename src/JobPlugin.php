@@ -8,16 +8,18 @@ declare(strict_types=1);
 
 namespace Frootbox\Jobs;
 
-use Frootbox\Core\Url\DescribedSubpages;
+use Frootbox\Core\Plugin\Offer;
+use Frootbox\Core\Plugin\Plugin;
 use Frootbox\Jobs\Job\JobStore;
 use Frootbox\Jobs\Job\JobText;
 
 /**
- * Each published job has an address below the first page with the list
- * of jobs, its slug (decisions 0219, 0231). The teaser and the image
- * describe it for search engines and sharing (decision 0223).
+ * The jobs as a plugin (decisions 0231, 0232): a page that shows a space
+ * lists its jobs at plugin(), each published job has its address below
+ * that page, its slug. The teaser and the image describe it for search
+ * engines and sharing (decision 0223).
  */
-final readonly class JobPages implements DescribedSubpages
+final readonly class JobPlugin implements Plugin
 {
     public const string LIST_BLOCK = 'frootbox/jobs/JobList';
 
@@ -28,16 +30,36 @@ final readonly class JobPages implements DescribedSubpages
         return JobStore::TYPE;
     }
 
-    public function blocks(): array
+    public function label(): string
     {
-        return [self::LIST_BLOCK];
+        return 'Jobs';
     }
 
-    public function paths(): iterable
+    public function block(): string
     {
-        foreach ($this->store->allPublished() as $job) {
+        return self::LIST_BLOCK;
+    }
+
+    public function details(): Offer
+    {
+        return Offer::Required;
+    }
+
+    public function spaces(): bool
+    {
+        return true;
+    }
+
+    public function paths(string $space): iterable
+    {
+        foreach ($this->store->allPublished($space) as $job) {
             yield $job->id => array_map(static fn(JobText $text): string => $text->slug, $job->data->translations);
         }
+    }
+
+    public function count(string $space): int
+    {
+        return \count(array_filter($this->store->ids(), fn(string $id): bool => $this->store->current($id)->space === $space));
     }
 
     public function title(string $id, string $language): ?string

@@ -4,6 +4,7 @@ description: The newest open jobs, e.g. on the start page, with a link to all of
 group: teaser
 keywords: [Jobs, Careers, Vacancies, Newest, Teasers]
 options:
+  space: { type: choice, label: Space, source: frootbox/jobs/space.choices, default: '' }
   count: { type: number, label: Number of jobs, default: 3, min: 1, max: 12 }
 fields:
   title: { type: headline, label: Heading, optional: true, maxLength: 100, placeholder: "Jobs" }

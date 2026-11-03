@@ -13,6 +13,7 @@ use Frootbox\Core\Action\InvalidInputException;
 use Frootbox\Core\Language\Languages;
 use Frootbox\Core\Media\MediaEditor;
 use Frootbox\Core\Page\Slug;
+use Frootbox\Core\Plugin\PluginSpaces;
 use Frootbox\Core\Revision\RevisionStore;
 use Frootbox\Core\Support\Message;
 use Frootbox\Core\Url\AddressSync;
@@ -44,6 +45,7 @@ final readonly class JobEditor
         private Languages $languages,
         private LocationStore $locations,
         private PersonStore $people,
+        private PluginSpaces $spaces,
     ) {}
 
     /**
@@ -448,6 +450,10 @@ final readonly class JobEditor
 
         if (null !== $data->start && (false === $day || $day->format('Y-m-d') !== $data->start)) {
             $errors['/start'] = 'must be a day, e.g. "2027-02-01".';
+        }
+
+        if (!$this->spaces->exists(JobStore::TYPE, $data->space)) {
+            $errors['/space'] = 'There is no such space of the jobs.';
         }
 
         if (null !== $data->image && (null === $data->media() || 1 !== preg_match(JobData::ID_PATTERN, $data->media()))) {

@@ -26,19 +26,22 @@ end of applications.
 
 ## Show it on the website
 
-Add the block **Jobs** to a page. It shows the open jobs, the newest
-first. When the jobs have different kinds or locations, visitors can
+A page shows the jobs when an admin chooses it in its settings under
+**This page shows**. The open jobs appear there, the newest first. When the jobs have different kinds or locations, visitors can
 filter by them. Each job gets its own address below that page, e.g.
 `/jobs/barista-m-f-d`.
 
-Choose an **application form** from **Forms** in the options of the
-block. It appears on every job, and each entry names under **Regarding**
+Choose an **application form** from **Forms** in the settings of the
+list in the editing mode. It appears on every job, and each entry names under **Regarding**
 which job it is about. With a field **Files** applicants send their CV
 and references. Without a form, a job offers to apply by email to the
 contact.
 
+For apprenticeships with a page of their own, e.g.
+`/careers/apprenticeships`, an admin adds another **space** there.
+
 The block **Newest jobs** shows the newest jobs, e.g. on the start page,
-with a link to all of them.
+from all spaces or from one, with a link to all of them.
 
 ## Search engines
 

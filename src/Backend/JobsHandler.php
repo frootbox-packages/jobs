@@ -10,6 +10,8 @@ namespace Frootbox\Jobs\Backend;
 
 use Frootbox\Backend\View\BackendView;
 use Frootbox\Core\Action\Runner;
+use Frootbox\Core\Plugin\ListSpaces;
+use Frootbox\Jobs\Job\JobStore;
 use Frootbox\Jobs\Job\ListJobs;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -39,11 +41,22 @@ final readonly class JobsHandler implements RequestHandlerInterface
         $params = $request->getQueryParams();
         $search = \is_string($params['q'] ?? null) ? mb_substr(trim($params['q']), 0, 100) : '';
         $page = \is_string($params['page'] ?? null) && ctype_digit($params['page']) ? max(1, (int) $params['page']) : 1;
-        $list = $this->runner->ask(new ListJobs(search: '' === $search ? null : $search, page: $page, perPage: self::PER_PAGE));
+        $spaces = $this->runner->ask(new ListSpaces(JobStore::TYPE))->items;
+        $space = null;
+
+        // With more than one space a tab for each, the default one first (decision 0232).
+        if (\count($spaces) > 1) {
+            $ids = array_map(static fn($item): string => $item->id, $spaces);
+            $space = \is_string($params['space'] ?? null) && \in_array($params['space'], $ids, true) ? $params['space'] : $ids[0];
+        }
+
+        $list = $this->runner->ask(new ListJobs(search: '' === $search ? null : $search, page: $page, perPage: self::PER_PAGE, space: $space));
 
         return $this->view->render($request, '@frootbox/jobs/backend/jobs.twig', [
             'list' => $list,
             'search' => $search,
+            'spaces' => null === $space ? [] : $spaces,
+            'space' => $space,
         ]);
     }
 }

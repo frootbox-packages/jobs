@@ -27,8 +27,8 @@ use Frootbox\Jobs\Job\UnpublishJob;
 use Frootbox\Jobs\Job\UpdateJob;
 
 /**
- * Jobs as a plugin (decisions 0219, 0231): jobs with drafts, their
- * addresses below the page with the list, the scheduler and the search.
+ * Jobs as a plugin (decisions 0219, 0231, 0232): jobs with drafts in
+ * spaces, their addresses below the page that shows the space, the scheduler and the search.
  * The screens come only with the backend.
  */
 final class JobsExtension implements Extension
@@ -43,9 +43,10 @@ final class JobsExtension implements Extension
         $registry->action(DiscardJob::class);
         $registry->action(DeleteJob::class);
         $registry->query(ListJobs::class);
+        $registry->query(SpaceChoices::class);
         $registry->query(ShowJob::class);
 
-        $registry->subpages(JobPages::class);
+        $registry->plugin(JobPlugin::class);
         $registry->scheduled(JobSchedule::class);
         $registry->searchSource(JobSource::class);
 

@@ -11,6 +11,7 @@ namespace Frootbox\Jobs\Blocks;
 use Frootbox\Core\Component\BlockContext;
 use Frootbox\Core\Component\BlockController;
 use Frootbox\Core\Page\Slug;
+use Frootbox\Core\Plugin\Space;
 use Frootbox\Core\Url\Urls;
 use Frootbox\Jobs\Job\JobStore;
 use Frootbox\Jobs\Job\JobType;
@@ -19,9 +20,9 @@ use Frootbox\Jobs\Website\JobRendering;
 
 /**
  * The open jobs, the newest first, filtered by kind and location without
- * a script. Below the first page with this block each job has its
- * address, there the block shows the job with the application form
- * (decision 0231).
+ * a script, of the space the page shows: the view of the jobs at
+ * plugin() (decision 0232). Below the page each job has its address,
+ * there the view shows the job with the application form (decision 0231).
  */
 final readonly class JobList implements BlockController
 {
@@ -46,7 +47,7 @@ final readonly class JobList implements BlockController
             }
         }
 
-        $jobs = array_values(array_filter($this->store->allPublished(), static fn(PublishedJob $job): bool => isset($job->data->translations[$language])));
+        $jobs = array_values(array_filter($this->store->allPublished($context->plugin->space ?? Space::DEFAULT), static fn(PublishedJob $job): bool => isset($job->data->translations[$language])));
         $images = true === ($context->options['images'] ?? false);
         $filtering = false !== ($context->options['filters'] ?? true);
 
