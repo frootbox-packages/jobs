@@ -24,6 +24,9 @@ final readonly class JobStore
 {
     public const string TYPE = 'frootbox/jobs/job';
 
+    /** The group of categories of the jobs (decision 0233) */
+    public const string CATEGORIES = 'frootbox/jobs/categories';
+
     public function __construct(
         private Revisions $revisions,
         private Urls $urls,

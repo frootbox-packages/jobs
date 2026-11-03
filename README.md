@@ -6,8 +6,9 @@ and a contact from `frootbox/people`, and two blocks for any theme.
 
 - **Jobs** (`frootbox/jobs/JobList`) is the view of the plugin (decision
   0232): a page that shows a space of the jobs lists its open jobs at
-  `plugin()`, the newest first, filtered by kind (`?type=part-time`) and
-  location (`?location=<slug of its name>`) without a script. Each
+  `plugin()`, the newest first, filtered by category (`?category=<slug>`, with
+  the categories below it), kind (`?type=part-time`) and location
+  (`?location=<slug of its name>`) without a script. Each
   published job gets an address below that page, e.g. `/jobs/barista`;
   there the view shows the job with its contact,
   structured data `JobPosting` and the application form chosen in its
@@ -32,8 +33,10 @@ the day as `validThrough`.
 Everything goes through actions, also from the REST API and the AI:
 `frootbox/jobs/job.create`, `.update`, `.publish`, `.unpublish`,
 `.schedule`, `.discard`, `.delete` and the queries
-`frootbox/jobs/job.list` and `.show`. The role "editor" gets
-`frootbox/jobs/*` on installation.
+`frootbox/jobs/job.list` and `.show`. Categories are the ones of the
+core (decision 0233) in the group `frootbox/jobs/categories`; the
+actions take `categories` as a list of their ids. The role "editor"
+gets `frootbox/jobs/*` on installation.
 
 ## In a template
 

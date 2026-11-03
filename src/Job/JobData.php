@@ -26,6 +26,7 @@ final readonly class JobData
      * @param string|null            $contact      The id of a person of the module people
      * @param array<mixed>|null      $image        The value of an image field: {"media": "01J…", "alt": "…"}
      * @param array<string, JobText> $translations By language
+     * @param list<string>           $categories   Ids of categories of the core (decision 0233)
      */
     public function __construct(
         public array $types = [],
@@ -38,6 +39,7 @@ final readonly class JobData
         public array $translations = [],
         /** The space of the jobs it belongs to (decision 0232) */
         public string $space = Space::DEFAULT,
+        public array $categories = [],
     ) {}
 
     /**
@@ -73,6 +75,7 @@ final readonly class JobData
             \is_array($data['image'] ?? null) ? $data['image'] : null,
             $translations,
             \is_string($data['space'] ?? null) && '' !== $data['space'] ? $data['space'] : Space::DEFAULT,
+            array_values(array_filter(\is_array($data['categories'] ?? null) ? $data['categories'] : [], \is_string(...))),
         );
     }
 
@@ -91,6 +94,7 @@ final readonly class JobData
             'image' => $this->image,
             'translations' => array_map(static fn(JobText $text): array => $text->toArray(), $this->translations),
             'space' => $this->space,
+            'categories' => $this->categories,
         ];
     }
 

@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace Frootbox\Jobs\Blocks;
 
+use Frootbox\Core\Category\Category;
+use Frootbox\Core\Category\ObjectCategories;
 use Frootbox\Core\Component\BlockContext;
 use Frootbox\Core\Component\BlockController;
 use Frootbox\Core\Page\Slug;
@@ -19,8 +21,8 @@ use Frootbox\Jobs\Job\PublishedJob;
 use Frootbox\Jobs\Website\JobRendering;
 
 /**
- * The open jobs, the newest first, filtered by kind and location without
- * a script, of the space the page shows: the view of the jobs at
+ * The open jobs, the newest first, filtered by kind, location and
+ * category (with the ones below it, decision 0233) without a script, of the space the page shows: the view of the jobs at
  * plugin() (decision 0232). Below the page each job has its address,
  * there the view shows the job with the application form (decision 0231).
  */
@@ -30,6 +32,7 @@ final readonly class JobList implements BlockController
         private JobStore $store,
         private JobRendering $rendering,
         private Urls $urls,
+        private ObjectCategories $categories,
     ) {}
 
     public function data(BlockContext $context): array
@@ -54,6 +57,18 @@ final readonly class JobList implements BlockController
         // The choices are what the jobs have; a filter with one choice is none.
         $types = [];
         $locations = [];
+        $assigned = $this->categories->of(JobStore::TYPE, array_map(static fn(PublishedJob $job): string => $job->id, $jobs));
+        $used = array_flip(array_map(static fn(Category $category): string => $category->id, array_merge(...array_values($assigned))));
+        $topics = [];
+
+        foreach ($this->categories->tree(JobStore::TYPE, JobStore::CATEGORIES) as $item) {
+            $slug = $item->slug($language);
+            $title = $item->title($language);
+
+            if (isset($used[$item->id]) && null !== $slug && null !== $title) {
+                $topics[$slug] = ['id' => $item->id, 'title' => $title];
+            }
+        }
 
         foreach ($jobs as $job) {
             foreach ($job->data->types as $type) {
@@ -74,17 +89,35 @@ final readonly class JobList implements BlockController
         $type = null !== $type && \in_array($type, $types, true) && $filtering ? $type : null;
         $place = (string) $context->query('location');
         $place = isset($locations[$place]) && $filtering ? $place : null;
+        [$topic, $chosen] = ($filtering ? $this->categories->bySlug(JobStore::TYPE, $language, (string) $context->query('category')) : null) ?? [null, null];
 
-        $shown = array_values(array_filter($jobs, static fn(PublishedJob $job): bool => (null === $type || \in_array($type, $job->data->types, true)) && (null === $place || $job->data->location === $locations[$place]['id'])));
-        $link = static fn(?string $type, ?string $place): string => $base . (null === $type && null === $place ? '' : '?' . http_build_query(array_filter(['type' => $type, 'location' => $place], static fn(?string $value): bool => null !== $value)));
+        $shown = array_values(array_filter($jobs, static fn(PublishedJob $job): bool => (null === $type || \in_array($type, $job->data->types, true))
+            && (null === $place || $job->data->location === $locations[$place]['id'])
+            && (null === $chosen || [] !== array_intersect($chosen, array_map(static fn(Category $category): string => $category->id, $assigned[$job->id] ?? [])))));
+        $current = ['category' => $topic?->slug($language), 'type' => $type?->value, 'location' => $place];
+        $link = static function (array $change) use ($base, $current): string {
+            $query = array_filter([...$current, ...$change], static fn(mixed $value): bool => null !== $value);
+
+            return $base . ([] === $query ? '' : '?' . http_build_query($query));
+        };
         $filters = [];
+
+        if ($filtering && \count($topics) > 1) {
+            $filters[] = [
+                'label' => 'Category',
+                'links' => [
+                    ['title' => null, 'href' => $link(['category' => null]), 'current' => null === $topic],
+                    ...array_map(static fn(string $slug, array $item): array => ['title' => $item['title'], 'href' => $link(['category' => $slug]), 'current' => $item['id'] === $topic?->id], array_keys($topics), $topics),
+                ],
+            ];
+        }
 
         if ($filtering && \count($types) > 1) {
             $filters[] = [
                 'label' => 'Kind of job',
                 'links' => [
-                    ['title' => null, 'href' => $link(null, $place), 'current' => null === $type],
-                    ...array_map(static fn(JobType $item): array => ['title' => $item->title(), 'href' => $link($item->value, $place), 'current' => $item === $type], $types),
+                    ['title' => null, 'href' => $link(['type' => null]), 'current' => null === $type],
+                    ...array_map(static fn(JobType $item): array => ['title' => $item->title(), 'href' => $link(['type' => $item->value]), 'current' => $item === $type], $types),
                 ],
             ];
         }
@@ -93,8 +126,8 @@ final readonly class JobList implements BlockController
             $filters[] = [
                 'label' => 'Location',
                 'links' => [
-                    ['title' => null, 'href' => $link($type?->value, null), 'current' => null === $place],
-                    ...array_map(static fn(string $slug, array $item): array => ['title' => $item['name'], 'href' => $link($type?->value, $slug), 'current' => $slug === $place], array_keys($locations), $locations),
+                    ['title' => null, 'href' => $link(['location' => null]), 'current' => null === $place],
+                    ...array_map(static fn(string $slug, array $item): array => ['title' => $item['name'], 'href' => $link(['location' => $slug]), 'current' => $slug === $place], array_keys($locations), $locations),
                 ],
             ];
         }
@@ -102,7 +135,7 @@ final readonly class JobList implements BlockController
         return [
             'jobs' => array_map(fn(PublishedJob $job): array => $this->rendering->teaser($job, $language, $images), $shown),
             'filters' => $filters,
-            'filtered' => null !== $type || null !== $place,
+            'filtered' => null !== $type || null !== $place || null !== $topic,
             'total' => \count($jobs),
         ];
     }

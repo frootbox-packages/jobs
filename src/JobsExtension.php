@@ -11,6 +11,7 @@ namespace Frootbox\Jobs;
 use Frootbox\Backend\Screen;
 use Frootbox\Backend\SearchCommand;
 use Frootbox\Backend\SearchLink;
+use Frootbox\Core\Category\CategoryGroup;
 use Frootbox\Core\Extension\Extension;
 use Frootbox\Core\Extension\Registry;
 use Frootbox\Jobs\Backend\JobHandler;
@@ -47,6 +48,7 @@ final class JobsExtension implements Extension
         $registry->query(ShowJob::class);
 
         $registry->plugin(JobPlugin::class);
+        $registry->add(CategoryGroup::class, new CategoryGroup(JobStore::CATEGORIES, 'Categories of the jobs', [JobStore::TYPE]));
         $registry->scheduled(JobSchedule::class);
         $registry->searchSource(JobSource::class);
 

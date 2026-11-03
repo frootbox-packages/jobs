@@ -10,6 +10,7 @@ namespace Frootbox\Jobs\Job;
 
 use DateTimeImmutable;
 use Frootbox\Core\Action\InvalidInputException;
+use Frootbox\Core\Category\ObjectCategories;
 use Frootbox\Core\Language\Languages;
 use Frootbox\Core\Media\MediaEditor;
 use Frootbox\Core\Page\Slug;
@@ -46,6 +47,7 @@ final readonly class JobEditor
         private LocationStore $locations,
         private PersonStore $people,
         private PluginSpaces $spaces,
+        private ObjectCategories $categories,
     ) {}
 
     /**
@@ -238,6 +240,22 @@ final readonly class JobEditor
     }
 
     /**
+     * The categories of an action's input, each must be one of a group
+     * for jobs (decision 0233). Categories deleted later simply drop out
+     * when publishing.
+     *
+     * @param list<string> $ids
+     *
+     * @return list<string>
+     *
+     * @throws InvalidInputException
+     */
+    public function categories(string $action, array $ids): array
+    {
+        return $this->categories->check($action, JobStore::TYPE, $ids);
+    }
+
+    /**
      * Publishes the drafts of jobs together.
      *
      * @param list<string> $ids
@@ -296,6 +314,7 @@ final readonly class JobEditor
 
         foreach ($drafts as $id => $draft) {
             $this->revisions->publish(JobStore::TYPE, $id);
+            $this->categories->sync(JobStore::TYPE, $id, $draft->categories);
 
             if (null !== $draft->media()) {
                 $media[] = $draft->media();
@@ -323,6 +342,7 @@ final readonly class JobEditor
         }
 
         $this->revisions->archive(JobStore::TYPE, $id);
+        $this->categories->clear(JobStore::TYPE, $id);
         $this->addresses->sync();
 
         return $this->store->details($id);
@@ -358,6 +378,7 @@ final readonly class JobEditor
 
         $this->revisions->discard(JobStore::TYPE, $id);
         $this->revisions->archive(JobStore::TYPE, $id);
+        $this->categories->clear(JobStore::TYPE, $id);
 
         if ($published) {
             $this->addresses->sync();

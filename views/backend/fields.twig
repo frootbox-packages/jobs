@@ -1,4 +1,4 @@
-{#- The fields of a job in one language plus kind, start, workplace, salary, location, contact and image (decisions 0220, 0231). -#}
+{#- The fields of a job in one language plus kind, start, workplace, salary, location, contact, image and categories (decisions 0220, 0231, 0233). -#}
 {% import '@backend/ui.twig' as ui %}
 {% set code = language.code %}
 {% set dir = language.direction.value %}
@@ -31,3 +31,4 @@
 {{ ui.select({label: t('Location'), name: 'location', id: 'job-location', options: [{value: '', label: t('No location')}]|merge(locations), value: data.location ?? '', disabled: not editable, hint: locations ? t('From the locations under People. Visitors can filter the list by it.') : t('Create locations under People to name where the job is.')}) }}
 {{ ui.select({label: t('Contact'), name: 'contact', id: 'job-contact', options: [{value: '', label: t('No contact')}]|merge(people), value: data.contact ?? '', disabled: not editable, hint: t('The person applicants can ask, from the people under People.')}) }}
 {{ ui.image({label: t('Image'), name: 'image', id: 'job-image', value: image_value, preview: image.preview ?? null, file: image.file ?? null, optional: true, disabled: not editable}) }}
+{% include '@backend/categories/choices.twig' with {type: 'frootbox/jobs/job', chosen: data.categories ?? [], disabled: not editable, prefix: 'job'} only %}

@@ -27,7 +27,7 @@ end of applications.
 ## Show it on the website
 
 A page shows the jobs when an admin chooses it in its settings under
-**This page shows**. The open jobs appear there, the newest first. When the jobs have different kinds or locations, visitors can
+**This page shows**. The open jobs appear there, the newest first. When the jobs have different categories, kinds or locations, visitors can
 filter by them. Each job gets its own address below that page, e.g.
 `/jobs/barista-m-f-d`.
 
@@ -42,6 +42,12 @@ For apprenticeships with a page of their own, e.g.
 
 The block **Newest jobs** shows the newest jobs, e.g. on the start page,
 from all spaces or from one, with a link to all of them.
+
+## Categories
+
+Under **Categories** you create areas such as "Kitchen" or "Service",
+also below each other. Visitors can filter the list by them. Deleting a
+category keeps its jobs.
 
 ## Search engines
 

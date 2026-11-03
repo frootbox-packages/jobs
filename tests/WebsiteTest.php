@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Frootbox\Jobs\Tests;
 
 use DateTimeImmutable;
+use Frootbox\Core\Category\CreateCategory;
 use Frootbox\Core\Page\PublishPages;
 use Frootbox\Core\Plugin\CreateSpace;
 use Frootbox\Forms\Form\AddField;
@@ -85,6 +86,28 @@ final class WebsiteTest extends JobsTestCase
         self::assertStringNotContainsString('>Röster<', $html);
 
         self::assertStringContainsString('Barista', $this->html('/jobs?type=nothing'), 'An unknown filter shows all.');
+    }
+
+    public function testFiltersByCategoryWithTheCategoriesBelow(): void
+    {
+        $kitchen = $this->runner()->run(new CreateCategory(JobStore::CATEGORIES, ['de' => ['title' => 'Küche']]))->id;
+        $pastry = $this->runner()->run(new CreateCategory(JobStore::CATEGORIES, ['de' => ['title' => 'Konditorei']], $kitchen))->id;
+        $service = $this->runner()->run(new CreateCategory(JobStore::CATEGORIES, ['de' => ['title' => 'Service']]))->id;
+        $this->runner()->run(new CreateCategory(JobStore::CATEGORIES, ['de' => ['title' => 'Verwaltung']]));
+        $this->job(['de' => ['title' => 'Konditor']], categories: [$pastry]);
+        $this->job(['de' => ['title' => 'Barista']], categories: [$service]);
+        $this->job(['de' => ['title' => 'Spülkraft']], publish: false, categories: [$kitchen]);
+
+        $html = $this->html('/jobs');
+        self::assertStringContainsString('<nav class="jobs-filter" aria-label="Kategorie">', $html);
+        self::assertStringContainsString('<a class="jobs-filter__link" href="/jobs?category=konditorei">Konditorei</a>', $html);
+        self::assertStringNotContainsString('?category=kueche"', $html, 'Only categories with published jobs.');
+        self::assertStringNotContainsString('Verwaltung', $html);
+
+        $html = $this->html('/jobs?category=kueche');
+        self::assertStringContainsString('Konditor', $html, 'With the categories below.');
+        self::assertStringNotContainsString('>Barista<', $html);
+        self::assertStringNotContainsString('Spülkraft', $html);
     }
 
     public function testShowsAJobAtItsAddressWithStructuredData(): void

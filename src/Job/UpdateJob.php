@@ -28,6 +28,7 @@ final readonly class UpdateJob implements Action
      * @param list<string>|null $types
      * @param array<mixed>|null $salary
      * @param array<mixed>|null $image
+     * @param list<string>|null $categories
      */
     public function __construct(
         #[Pattern(Ulid::PATTERN)]
@@ -49,6 +50,9 @@ final readonly class UpdateJob implements Action
         public ?string $contact = null,
         #[Description('An image from the media library: {"media": "<id>", "alt": "…"}; {} removes it, left out keeps it')]
         public ?array $image = null,
+        #[ListOf('string')]
+        #[Description('Ids of categories, replacing the ones before')]
+        public ?array $categories = null,
     ) {}
 
     public function handle(JobEditor $editor, JobStore $store): JobDetails
@@ -68,6 +72,7 @@ final readonly class UpdateJob implements Action
             },
             null === $this->translations ? $current->translations : $editor->translations(self::NAME, $this->translations, $current->translations),
             $current->space,
+            null === $this->categories ? $current->categories : $editor->categories(self::NAME, $this->categories),
         );
 
         return $editor->saveDraft(self::NAME, $this->id, $data);

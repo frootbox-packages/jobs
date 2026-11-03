@@ -27,7 +27,7 @@ offline geht, etwa zum Ende der Bewerbungsfrist.
 Eine Seite zeigt die Stellen, wenn ein Admin es in ihren Einstellungen
 unter **Diese Seite zeigt** wählt. Dort stehen die offenen Stellen, die
 neuesten zuerst. Haben die Stellen verschiedene
-Arten oder Standorte, können Besucher danach filtern. Jede Stelle bekommt
+Kategorien, Arten oder Standorte, können Besucher danach filtern. Jede Stelle bekommt
 eine eigene Adresse unter dieser Seite, z. B. `/jobs/barista-m-w-d`.
 
 Wähl im Bearbeitungsmodus in den Einstellungen der Liste ein **Bewerbungsformular** aus
@@ -42,6 +42,12 @@ legt ein Admin dort eine weitere **Verwaltung** an.
 Der Block **Neueste Stellen** zeigt die neuesten Stellen, etwa auf der
 Startseite, aus allen Verwaltungen oder aus einer, mit einem Link auf
 alle.
+
+## Kategorien
+
+Unter **Kategorien** legst Du Bereiche an, etwa „Küche“ oder „Service“,
+auch untereinander. Besucher können die Liste danach filtern. Löschst
+Du eine Kategorie, bleiben ihre Stellen.
 
 ## Suchmaschinen
 

@@ -132,10 +132,11 @@ abstract class JobsTestCase extends NotesTestCase
      * @param array<string, mixed> $translations
      * @param list<string>         $types
      * @param array<mixed>|null    $salary
+     * @param list<string>         $categories
      */
-    protected function job(array $translations, array $types = ['full-time'], string $start = '', Workplace $workplace = Workplace::OnSite, ?array $salary = null, string $location = '', string $contact = '', bool $publish = true, string $space = Space::DEFAULT): string
+    protected function job(array $translations, array $types = ['full-time'], string $start = '', Workplace $workplace = Workplace::OnSite, ?array $salary = null, string $location = '', string $contact = '', bool $publish = true, string $space = Space::DEFAULT, array $categories = []): string
     {
-        $details = $this->runner()->run(new CreateJob($translations, $types, $start, $workplace, $salary, $location, $contact, space: $space));
+        $details = $this->runner()->run(new CreateJob($translations, $types, $start, $workplace, $salary, $location, $contact, space: $space, categories: $categories));
 
         if ($publish) {
             $this->runner()->run(new PublishJobs([$details->id]));

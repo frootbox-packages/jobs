@@ -1,6 +1,6 @@
 {
     "name": "frootbox/jobs",
-    "description": "Jobs for the Frootbox CMS: open positions with kind, start, salary and drafts, a list filtered by kind and location, an address for each job, structured data and the application through a form",
+    "description": "Jobs for the Frootbox CMS: open positions with kind, start, salary and drafts, a list filtered by category, kind and location, an address for each job, structured data and the application through a form",
     "type": "frootbox-extension",
     "license": "MIT",
     "keywords": [
