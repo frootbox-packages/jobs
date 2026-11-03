@@ -30,6 +30,7 @@ final readonly class UpdateJob implements Action
      * @param array<mixed>|null $image
      * @param list<string>|null $categories
      * @param list<string>|null $tags
+     * @param array<mixed>|null $fields
      */
     public function __construct(
         #[Pattern(Ulid::PATTERN)]
@@ -57,6 +58,8 @@ final readonly class UpdateJob implements Action
         #[ListOf('string')]
         #[Description('Ids, keys or labels of tags, replacing the ones before; a new word becomes a tag unless only presets count')]
         public ?array $tags = null,
+        #[Description('Further fields the views of the theme add, by name; a text one per language, e.g. {"subtitle": {"de": "…"}}, null removes one, the others stay; see object.fields; left out keeps them')]
+        public ?array $fields = null,
     ) {}
 
     public function handle(JobEditor $editor, JobStore $store): JobDetails
@@ -78,6 +81,7 @@ final readonly class UpdateJob implements Action
             $current->space,
             null === $this->categories ? $current->categories : $editor->categories(self::NAME, $this->categories),
             null === $this->tags ? $current->tags : $editor->tags(self::NAME, $current->space, $this->tags),
+            null === $this->fields ? $current->fields : $editor->fields(self::NAME, $current->fields, $this->fields),
         );
 
         return $editor->saveDraft(self::NAME, $this->id, $data);

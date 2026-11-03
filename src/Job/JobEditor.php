@@ -13,6 +13,7 @@ use Frootbox\Core\Action\InvalidInputException;
 use Frootbox\Core\Category\ObjectCategories;
 use Frootbox\Core\Language\Languages;
 use Frootbox\Core\Media\MediaEditor;
+use Frootbox\Core\ObjectField\ObjectFields;
 use Frootbox\Core\Page\Slug;
 use Frootbox\Core\Plugin\PluginSpaces;
 use Frootbox\Core\Revision\RevisionStore;
@@ -50,6 +51,7 @@ final readonly class JobEditor
         private PluginSpaces $spaces,
         private ObjectCategories $categories,
         private ObjectTags $tags,
+        private ObjectFields $fields,
     ) {}
 
     /**
@@ -258,6 +260,22 @@ final readonly class JobEditor
     }
 
     /**
+     * The further fields of an action's input after those of the draft
+     * (decision 0240), checked against the views of the theme.
+     *
+     * @param array<mixed> $current
+     * @param array<mixed> $input
+     *
+     * @return array<string, mixed>
+     *
+     * @throws InvalidInputException
+     */
+    public function fields(string $action, array $current, array $input): array
+    {
+        return $this->fields->check($action, JobStore::TYPE, $current, $input);
+    }
+
+    /**
      * The tags of an action's input (decision 0239): ids, keys or labels;
      * presets of the space and new words become tags here, unless only
      * the presets count.
@@ -334,6 +352,7 @@ final readonly class JobEditor
             $this->revisions->publish(JobStore::TYPE, $id);
             $this->categories->sync(JobStore::TYPE, $id, $draft->categories);
             $this->tags->sync(JobStore::TYPE, $id, $draft->tags);
+            $this->fields->sync(JobStore::TYPE, $id, $draft->fields);
 
             if (null !== $draft->media()) {
                 $media[] = $draft->media();
@@ -363,6 +382,7 @@ final readonly class JobEditor
         $this->revisions->archive(JobStore::TYPE, $id);
         $this->categories->clear(JobStore::TYPE, $id);
         $this->tags->clear(JobStore::TYPE, $id);
+        $this->fields->clear(JobStore::TYPE, $id);
         $this->addresses->sync();
 
         return $this->store->details($id);
@@ -400,6 +420,7 @@ final readonly class JobEditor
         $this->revisions->archive(JobStore::TYPE, $id);
         $this->categories->clear(JobStore::TYPE, $id);
         $this->tags->clear(JobStore::TYPE, $id);
+        $this->fields->clear(JobStore::TYPE, $id);
 
         if ($published) {
             $this->addresses->sync();

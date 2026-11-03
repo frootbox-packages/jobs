@@ -60,6 +60,8 @@ final readonly class JobRendering
 
         return [
             'id' => $job->id,
+            // For object_field() and object_value() (decision 0240).
+            'target' => JobStore::target($job->id),
             'title' => $text->title,
             'teaser' => $text->teaser,
             'url' => $this->url($job->id, $language),

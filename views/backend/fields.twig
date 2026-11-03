@@ -1,4 +1,4 @@
-{#- The fields of a job in one language plus kind, start, workplace, salary, location, contact, image, categories and tags (decisions 0220, 0231, 0233, 0239). -#}
+{#- The fields of a job in one language plus kind, start, workplace, salary, location, contact, image, categories, tags and the further fields of the theme (decisions 0220, 0231, 0233, 0239, 0240). -#}
 {% import '@backend/ui.twig' as ui %}
 {% set code = language.code %}
 {% set dir = language.direction.value %}
@@ -33,3 +33,4 @@
 {{ ui.image({label: t('Image'), name: 'image', id: 'job-image', value: image_value, preview: image.preview ?? null, file: image.file ?? null, optional: true, disabled: not editable}) }}
 {% include '@backend/categories/choices.twig' with {type: 'frootbox/jobs/job', chosen: data.categories ?? [], disabled: not editable, prefix: 'job'} only %}
 {% include '@backend/tags/choices.twig' with {type: 'frootbox/jobs/job', space: data.space ?? (space ?? null), chosen: data.tags ?? [], disabled: not editable, prefix: 'job'} only %}
+{% include '@backend/fields/object.twig' with {type: 'frootbox/jobs/job', values: data.fields ?? {}, language: language, disabled: not editable, prefix: 'job'} only %}

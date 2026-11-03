@@ -10,6 +10,9 @@ namespace Frootbox\Jobs\Tests;
 
 use DateTimeImmutable;
 use Frootbox\Core\Action\InvalidInputException;
+use Frootbox\Core\Extension\Registry;
+use Frootbox\Core\ObjectField\ObjectFields;
+use Frootbox\Core\ObjectField\ObjectFieldSet;
 use Frootbox\Core\Page\PublishPages;
 use Frootbox\Core\Schedule\Scheduler;
 use Frootbox\Core\Search\Search;
@@ -72,6 +75,19 @@ final class JobsTest extends JobsTestCase
         $shown = $this->runner()->ask(new ShowJob($details->id));
         self::assertSame(JobStatus::Published, $shown->status);
         self::assertSame([], $shown->urls, 'Without a page with the list there is no address yet.');
+    }
+
+    public function testKeepsTheFurtherFieldsOfTheTheme(): void
+    {
+        $this->get(Registry::class)->add(ObjectFieldSet::class, new ObjectFieldSet(JobStore::TYPE, ['noContactDetails' => ['type' => 'boolean']]));
+        $id = $this->runner()->run(new CreateJob(['de' => ['title' => 'Barista']], fields: ['noContactDetails' => true]))->id;
+        $this->runner()->run(new UpdateJob($id, ['de' => ['teaser' => 'In Teilzeit.']]));
+        self::assertSame(['noContactDetails' => true], $this->runner()->ask(new ShowJob($id))->draft?->fields, 'Left out, they stay.');
+
+        $this->runner()->run(new PublishJobs([$id]));
+        self::assertSame([$id => ['noContactDetails' => true]], $this->get(ObjectFields::class)->of(JobStore::TYPE, [$id]));
+        $this->runner()->run(new UnpublishJob($id));
+        self::assertSame([$id => []], $this->get(ObjectFields::class)->of(JobStore::TYPE, [$id]));
     }
 
     public function testChecksWhatItTakesIn(): void

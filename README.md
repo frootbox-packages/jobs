@@ -44,10 +44,17 @@ or labels, and new words become tags unless `config/tags.yaml` closes
 the list for `frootbox/jobs/job` or the space. The role "editor"
 gets `frootbox/jobs/*` on installation.
 
+Further fields (decision 0240): a view of the theme declares them under
+`object: fields:` in its header, e.g. an override of `JobList`, and
+the actions take them as `fields`; `object.fields` with the type
+`frootbox/jobs/job` lists them. The form in the backend shows them under
+"More fields".
+
 ## In a template
 
 ```twig
 <a href="{{ url('frootbox/jobs/job:' ~ id) }}">…</a>
+{{ object_field(job, 'subtitle') }}  {# a further field, job as the view gets it #}
 ```
 
 ## Backend

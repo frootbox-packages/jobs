@@ -28,6 +28,7 @@ final readonly class JobData
      * @param array<string, JobText> $translations By language
      * @param list<string>           $categories   Ids of categories of the core (decision 0233)
      * @param list<string>           $tags         Ids of tags of the core (decision 0239)
+     * @param array<mixed>           $fields       Further fields of the views by name (decision 0240)
      */
     public function __construct(
         public array $types = [],
@@ -42,6 +43,7 @@ final readonly class JobData
         public string $space = Space::DEFAULT,
         public array $categories = [],
         public array $tags = [],
+        public array $fields = [],
     ) {}
 
     /**
@@ -79,6 +81,7 @@ final readonly class JobData
             \is_string($data['space'] ?? null) && '' !== $data['space'] ? $data['space'] : Space::DEFAULT,
             array_values(array_filter(\is_array($data['categories'] ?? null) ? $data['categories'] : [], \is_string(...))),
             array_values(array_filter(\is_array($data['tags'] ?? null) ? $data['tags'] : [], \is_string(...))),
+            \is_array($data['fields'] ?? null) ? $data['fields'] : [],
         );
     }
 
@@ -99,6 +102,7 @@ final readonly class JobData
             'space' => $this->space,
             'categories' => $this->categories,
             'tags' => $this->tags,
+            'fields' => $this->fields,
         ];
     }
 
