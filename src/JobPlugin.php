@@ -45,6 +45,11 @@ final readonly class JobPlugin implements Plugin
         return Offer::Required;
     }
 
+    public function categories(): Offer
+    {
+        return Offer::Optional;
+    }
+
     public function spaces(): bool
     {
         return true;

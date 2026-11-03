@@ -61,7 +61,12 @@ fields:
   </article>
 {% else %}
   <div class="jobs-list">
-    {{ heading('title', 0, {class: 'jobs-list__title'}) }}
+    {% if category %}
+      {{ heading_text(category.title, 0, {class: 'jobs-list__title'}) }}
+      {% if category.description %}<p class="jobs-list__intro">{{ category.description }}</p>{% endif %}
+    {% else %}
+      {{ heading('title', 0, {class: 'jobs-list__title'}) }}
+    {% endif %}
     {% for filter in filters %}
       <nav class="jobs-filter" aria-label="{{ t(filter.label) }}">
         <ul class="jobs-filter__list">

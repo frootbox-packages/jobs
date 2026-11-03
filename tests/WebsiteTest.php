@@ -114,6 +114,27 @@ final class WebsiteTest extends JobsTestCase
         self::assertStringNotContainsString('Spülkraft', $html);
     }
 
+    public function testCategoriesHavePagesOfTheirOwnWithTheSwitch(): void
+    {
+        $kitchen = $this->runner()->run(new CreateCategory(JobStore::CATEGORIES, ['de' => ['title' => 'Küche', 'description' => 'Kochen, backen, spülen.']]))->id;
+        $pastry = $this->runner()->run(new CreateCategory(JobStore::CATEGORIES, ['de' => ['title' => 'Konditorei']], $kitchen))->id;
+        $service = $this->runner()->run(new CreateCategory(JobStore::CATEGORIES, ['de' => ['title' => 'Service']]))->id;
+        $this->job(['de' => ['title' => 'Konditor']], categories: [$pastry]);
+        $this->job(['de' => ['title' => 'Barista']], types: ['part-time'], categories: [$service]);
+        $this->runner()->run(new AssignPlugin($this->jobs, JobStore::TYPE, categories: true));
+        $this->runner()->run(new PublishPages([$this->jobs]));
+
+        $html = $this->html('/jobs/kueche');
+        self::assertMatchesRegularExpression('~<h1 class="jobs-list__title">Küche</h1>~', $html, 'The category owns the h1 (decision 0243).');
+        self::assertStringContainsString('<p class="jobs-list__intro">Kochen, backen, spülen.</p>', $html);
+        self::assertStringContainsString('Konditor', $html, 'With the categories below.');
+        self::assertStringNotContainsString('>Barista<', $html);
+        self::assertStringContainsString('<a class="jobs-filter__link" href="/jobs/kueche/konditorei">Konditorei</a>', $html, 'The filter leads to the pages of the categories.');
+        self::assertStringContainsString('<a class="jobs-filter__link" href="/jobs">Alle</a>', $html);
+        self::assertStringContainsString('<a class="jobs-filter__link" href="/jobs/kueche?type=part-time">Teilzeit</a>', $html, 'Other filters stay on the page of the category.');
+        self::assertStringContainsString('<a class="jobs-filter__link" href="/jobs/service?type=part-time">Service</a>', $this->html('/jobs?type=part-time'), 'Other filters go along.');
+    }
+
     public function testFiltersByTagsWithPresetsPerSpace(): void
     {
         // The space of apprenticeships has a closed list of its own (decision 0239).

@@ -13,6 +13,7 @@ use Frootbox\Core\Category\ObjectCategories;
 use Frootbox\Core\Component\BlockContext;
 use Frootbox\Core\Component\BlockController;
 use Frootbox\Core\Page\Slug;
+use Frootbox\Core\Plugin\CategoryPages;
 use Frootbox\Core\Plugin\Space;
 use Frootbox\Core\Tag\ObjectTags;
 use Frootbox\Core\Tag\Tag;
@@ -37,6 +38,7 @@ final readonly class JobList implements BlockController
         private Urls $urls,
         private ObjectCategories $categories,
         private ObjectTags $tags,
+        private CategoryPages $pages,
     ) {}
 
     public function data(BlockContext $context): array
@@ -105,17 +107,20 @@ final readonly class JobList implements BlockController
         $place = isset($locations[$place]) && $filtering ? $place : null;
         $word = (string) $context->query('tag');
         $word = isset($words[$word]) && $filtering ? $word : null;
-        [$topic, $chosen] = ($filtering ? $this->categories->bySlug(JobStore::TYPE, $language, (string) $context->query('category')) : null) ?? [null, null];
+        // On the page of a category it is that one (decision 0243).
+        $own = $this->pages->current($context);
+        [$topic, $chosen] = $own ?? ($filtering ? $this->categories->bySlug(JobStore::TYPE, $language, (string) $context->query('category')) : null) ?? [null, null];
+        $here = null === $own || null === $subpage ? $base : $this->urls->href($subpage->target, $context->language) ?? $base;
 
         $shown = array_values(array_filter($jobs, static fn(PublishedJob $job): bool => (null === $type || \in_array($type, $job->data->types, true))
             && (null === $place || $job->data->location === $locations[$place]['id'])
             && (null === $word || \in_array($words[$word]['id'], array_map(static fn(Tag $tag): string => $tag->id, $tagged[$job->id] ?? []), true))
             && (null === $chosen || [] !== array_intersect($chosen, array_map(static fn(Category $category): string => $category->id, $assigned[$job->id] ?? [])))));
-        $current = ['category' => $topic?->slug($language), 'type' => $type?->value, 'location' => $place, 'tag' => $word];
-        $link = static function (array $change) use ($base, $current): string {
+        $current = ['category' => null === $own ? $topic?->slug($language) : null, 'type' => $type?->value, 'location' => $place, 'tag' => $word];
+        $link = static function (array $change, ?string $to = null) use ($here, $current): string {
             $query = array_filter([...$current, ...$change], static fn(mixed $value): bool => null !== $value);
 
-            return $base . ([] === $query ? '' : '?' . http_build_query($query));
+            return ($to ?? $here) . ([] === $query ? '' : '?' . http_build_query($query));
         };
         $filters = [];
 
@@ -123,8 +128,8 @@ final readonly class JobList implements BlockController
             $filters[] = [
                 'label' => 'Category',
                 'links' => [
-                    ['title' => null, 'href' => $link(['category' => null]), 'current' => null === $topic],
-                    ...array_map(static fn(string $slug, array $item): array => ['title' => $item['title'], 'href' => $link(['category' => $slug]), 'current' => $item['id'] === $topic?->id], array_keys($topics), $topics),
+                    ['title' => null, 'href' => $link(['category' => null], $base), 'current' => null === $topic],
+                    ...array_map(fn(string $slug, array $item): array => ['title' => $item['title'], 'href' => $this->categoryLink($context, $item['id'], $slug, $link), 'current' => $item['id'] === $topic?->id], array_keys($topics), $topics),
                 ],
             ];
         }
@@ -163,7 +168,21 @@ final readonly class JobList implements BlockController
             'jobs' => array_map(fn(PublishedJob $job): array => $this->rendering->teaser($job, $language, $images), $shown),
             'filters' => $filters,
             'filtered' => null !== $type || null !== $place || null !== $topic || null !== $word,
+            'category' => null === $own ? null : ['title' => $own[0]->titleIn([$language]), 'description' => $own[0]->description($language)],
             'total' => \count($jobs),
         ];
+    }
+
+    /**
+     * A category of the filter: its page if it has one (decision 0243),
+     * else the list with ?category=; the other filters stay.
+     *
+     * @param callable(array<string, string|null>, string|null): string $link
+     */
+    private function categoryLink(BlockContext $context, string $id, string $slug, callable $link): string
+    {
+        $page = $this->pages->href($context, $id);
+
+        return null === $page ? $link(['category' => $slug], null) : $link(['category' => null], $page);
     }
 }
