@@ -1,3 +1,5 @@
 title: Jobs
 description: Jobs with kind, start, salary, workplace and drafts, a list filtered by category, kind and location with an address for each job, the application through a form and the newest jobs as teasers
 extension: Frootbox\Jobs\JobsExtension
+# For the extension directory (decision 0282).
+icon: icon.svg
