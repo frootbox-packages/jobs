@@ -5,8 +5,7 @@ planned publishing, the kind of job, start, workplace, salary, a location
 and a contact from `frootbox/people`, categories, tags and two blocks
 for any theme.
 
-- **Jobs** (`frootbox/jobs/JobList`) is the view of the plugin (decision
-  0232): a page that shows a space of the jobs lists its open jobs at
+- **Jobs** (`frootbox/jobs/JobList`) is the view of the plugin: a page that shows a space of the jobs lists its open jobs at
   `plugin()`, the newest first, filtered by category (`?category=<slug>`, with
   the categories below it), kind (`?type=part-time`) and location
   (`?location=<slug of its name>`) and tag (`?tag=<slug>`) without a
@@ -37,20 +36,19 @@ Everything goes through actions, also from the REST API and the AI:
 `frootbox/jobs/job.create`, `.update`, `.publish`, `.unpublish`,
 `.schedule`, `.discard`, `.delete` and the queries
 `frootbox/jobs/job.list` and `.show`. Categories are the ones of the
-core (decision 0233) in the group `frootbox/jobs/categories`; the
+core in the group `frootbox/jobs/categories`; the
 actions take `categories` as a list of their ids. Tags are the common
-stock of the core (decision 0239): the actions take `tags` as ids, keys
+stock of the core: the actions take `tags` as ids, keys
 or labels, and new words become tags unless `config/tags.yaml` closes
 the list for `frootbox/jobs/job` or the space. The role "editor"
 gets `frootbox/jobs/*` on installation.
 
-Further fields (decision 0240): a view of the theme declares them under
+Further fields: a view of the theme declares them under
 `object: fields:` in its header, e.g. an override of `JobList`, and
 the actions take them as `fields`; `object.fields` with the type
 `frootbox/jobs/job` lists them. The form in the backend shows them under
 "More fields". In the editing mode editors change them right on the page
-(`object.update-field`), and the editor bar publishes the job with the page
-(decision 0241).
+(`object.update-field`), and the editor bar publishes the job with the page.
 
 ## In a template
 
@@ -63,6 +61,12 @@ the actions take them as `fields`; `object.fields` with the type
 
 With `frootbox/backend` installed, the screen "Jobs" appears in the
 sidebar at `/cms/vacancies`.
+
+## Source and issues
+
+This package is developed in the [Frootbox monorepo](https://github.com/Frootbox/frootbox)
+and mirrored here read-only. Questions, bugs and ideas go there, see the
+[documentation](https://github.com/Frootbox/frootbox/tree/main/documentation).
 
 ## License
 
