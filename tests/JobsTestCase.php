@@ -21,6 +21,7 @@ use Frootbox\Core\Plugin\AssignPlugin;
 use Frootbox\Core\Plugin\Space;
 use Frootbox\Core\Tests\Support\FixtureSite;
 use Frootbox\Core\Tests\Support\NotesTestCase;
+use Frootbox\Forms\Captcha\Proofs;
 use Frootbox\Forms\Entry\Entries;
 use Frootbox\Forms\Website\Sendings;
 use Frootbox\Jobs\Job\CreateJob;
@@ -54,7 +55,7 @@ abstract class JobsTestCase extends NotesTestCase
 
     protected function tables(): array
     {
-        return [Entries::TABLE, Sendings::TABLE];
+        return [Entries::TABLE, Sendings::TABLE, Proofs::TABLE];
     }
 
     protected function environment(): Environment
